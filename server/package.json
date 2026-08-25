@@ -1,46 +1,51 @@
 {
-  "name": "spyde-server",
-  "version": "1.0.0",
-  "description": "SPYDE B2B Fraud Prevention Middleware Server",
-  "main": "dist/index.js",
-  "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "typecheck": "tsc --noEmit"
-  },
-  "keywords": [
-    "upi",
-    "fraud-prevention",
-    "middleware",
-    "fintech"
-  ],
-  "author": "SPYDE Team",
-  "license": "ISC",
-  "dependencies": {
-    "@prisma/client": "^5.19.1",
-    "@upstash/redis": "^1.34.3",
-    "bcrypt": "^5.1.1",
-    "cors": "^2.8.5",
-    "dotenv": "^17.4.2",
-    "express": "^4.19.2",
-    "helmet": "^7.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "morgan": "^1.10.0",
-    "zod": "^3.23.8"
-  },
-  "devDependencies": {
-    "@types/bcrypt": "^5.0.2",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/jsonwebtoken": "^9.0.6",
-    "@types/morgan": "^1.9.9",
-    "@types/node": "^20.14.9",
-    "prisma": "^5.19.1",
-    "ts-node": "^10.9.2",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.5.2"
-  }
+    "name": "spyde-server",
+    "version": "1.0.0",
+    "description": "SPYDE B2B Fraud Prevention Middleware Server",
+    "main": "dist/index.js",
+    "scripts": {
+        "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+        "build": "tsc",
+        "start": "node dist/index.js",
+        "prisma:generate": "prisma generate",
+        "prisma:migrate": "prisma migrate dev",
+        "typecheck": "tsc --noEmit"
+    },
+    "keywords": [
+        "upi",
+        "fraud-prevention",
+        "middleware",
+        "fintech"
+    ],
+    "author": "SPYDE Team",
+    "license": "ISC",
+    "dependencies": {
+        "@prisma/client": "^5.19.1",
+        "@upstash/redis": "^1.34.3",
+        "bcrypt": "^5.1.1",
+        "cookie-parser": "^1.4.7",
+        "cors": "^2.8.5",
+        "dotenv": "^17.4.2",
+        "express": "^4.19.2",
+        "helmet": "^7.1.0",
+        "jsonwebtoken": "^9.0.2",
+        "morgan": "^1.10.0",
+        "zod": "^3.23.8"
+    },
+    "devDependencies": {
+        "@types/bcrypt": "^5.0.2",
+        "@types/cookie-parser": "^1.4.10",
+        "@types/cors": "^2.8.17",
+        "@types/express": "^4.17.21",
+        "@types/jsonwebtoken": "^9.0.6",
+        "@types/morgan": "^1.9.9",
+        "@types/node": "^20.14.9",
+        "prisma": "^5.19.1",
+        "ts-node": "^10.9.2",
+        "ts-node-dev": "^2.0.0",
+        "typescript": "^5.5.2"
+    },
+    "prisma": {
+        "seed": "npx tsx prisma/seed.ts"
+    }
 }

@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import { verifyAccessToken, type TokenPayload } from '../services/authService';
 import { prisma } from '../db/prisma';
 
 export interface AuthenticatedUser {
@@ -16,9 +17,6 @@ declare global {
     }
   }
 }
-
-// Cached sandbox fallback user ID
-let cachedUserId: string | null = null;
 
 export const authenticateToken = async (
   req: Request,
@@ -42,21 +40,45 @@ export const authenticateToken = async (
     return;
   }
 
-  // In sandbox / development, resolve to the first valid database user
-  if (!cachedUserId) {
-    const user = await prisma.user.findFirst({
-      select: { id: true, name: true, phone: true, isAdmin: true },
-    });
-    if (user) {
-      cachedUserId = user.id;
+  const token = authHeader.substring(7);
+
+  try {
+    const decoded: TokenPayload = verifyAccessToken(token);
+
+    req.user = {
+      id: decoded.userId,
+      phone: decoded.phone,
+      isAdmin: decoded.isAdmin,
+    };
+
+    next();
+  } catch (_error: unknown) {
+    if (process.env.NODE_ENV === 'development' && token === 'sandbox_token') {
+      const user = await prisma.user.findFirst({
+        select: { id: true, name: true, phone: true, isAdmin: true },
+      });
+      if (user) {
+        req.user = {
+          id: user.id,
+          phone: user.phone,
+          name: user.name,
+          isAdmin: user.isAdmin,
+        };
+        next();
+        return;
+      }
     }
+
+    res.status(401).json({
+      success: false,
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Invalid or expired access token',
+      },
+      meta: {
+        timestamp: new Date().toISOString(),
+        requestId: req.requestId || 'req_unknown',
+      },
+    });
   }
-
-  req.user = {
-    id: cachedUserId || 'cmt7cgg1e0001y6lto6yv8g6o',
-    name: 'Admin Portal User',
-    isAdmin: true,
-  };
-
-  next();
 };
