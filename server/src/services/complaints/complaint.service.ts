@@ -25,7 +25,7 @@ export class ComplaintService {
       where: {
         complainantId,
         targetVpa,
-        category,
+        category: category as any,
         createdAt: { gte: oneDayAgo },
       },
     });
@@ -46,7 +46,7 @@ export class ComplaintService {
         complainantId,
         targetVpa,
         targetUserId: handleRecord?.userId || null,
-        category,
+        category: category as any,
         description,
         evidenceUrl: evidenceUrl || null,
         transactionId: transactionId || null,
@@ -66,6 +66,38 @@ export class ComplaintService {
     };
   }
 
+  // ✅ G4: Retrieve all complaints filed by the current user
+  async getMyComplaints(userId: string, limit = 20, offset = 0) {
+    const [complaints, total] = await Promise.all([
+      prisma.complaint.findMany({
+        where: { complainantId: userId },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.complaint.count({
+        where: { complainantId: userId },
+      }),
+    ]);
+
+    return {
+      complaints: complaints.map((c) => ({
+        id: c.id,
+        targetVpa: c.targetVpa,
+        category: c.category,
+        description: c.description,
+        status: c.status,
+        evidenceUrl: c.evidenceUrl,
+        transactionId: c.transactionId,
+        createdAt: c.createdAt.toISOString(),
+        updatedAt: c.updatedAt.toISOString(),
+      })),
+      total,
+      limit,
+      offset,
+    };
+  }
+
   async getComplaintStats(targetVpa: string): Promise<ComplaintStatsResponse> {
     const complaints = await prisma.complaint.findMany({
       where: { targetVpa },
@@ -80,16 +112,17 @@ export class ComplaintService {
     const totalComplaints = complaints.length;
     const verifiedComplaints = complaints.filter((c: ComplaintSummaryRecord) => c.status === 'VERIFIED').length;
 
-    const breakdown: Record<ComplaintCategory, number> = {
+    const breakdown: Record<string, number> = {
       FRAUD: 0,
       IMPERSONATION: 0,
       SPAM: 0,
       HARASSMENT: 0,
+      QR_TAMPERING: 0,
       OTHER: 0,
     };
 
     complaints.forEach((c: ComplaintSummaryRecord) => {
-      const cat = c.category as ComplaintCategory;
+      const cat = c.category;
       if (breakdown[cat] !== undefined) {
         breakdown[cat] += 1;
       }
@@ -103,6 +136,7 @@ export class ComplaintService {
       if (c.category === 'FRAUD') base = 25;
       else if (c.category === 'IMPERSONATION') base = 20;
       else if (c.category === 'HARASSMENT') base = 10;
+      else if (c.category === 'QR_TAMPERING') base = 30;
       calculatedWeight += base * multiplier;
     });
 
@@ -112,7 +146,7 @@ export class ComplaintService {
       targetVpa,
       totalComplaints,
       verifiedComplaints,
-      breakdown,
+      breakdown: breakdown as Record<ComplaintCategory, number>,
       communityRiskWeight,
       firstReportedAt: complaints[0]?.createdAt.toISOString() || new Date().toISOString(),
       lastReportedAt: complaints[complaints.length - 1]?.createdAt.toISOString() || new Date().toISOString(),

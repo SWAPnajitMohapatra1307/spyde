@@ -11,8 +11,28 @@ import { asyncHandler } from '../utils/asyncHandler';
 const router = Router();
 
 /**
+ * GET /api/liveness/status/:sessionId
+ * PUBLIC ENDPOINT: Returns current status & verdict for polling.
+ */
+router.get(
+  '/status/:sessionId',
+  asyncHandler(async (req, res) => {
+    const { sessionId } = req.params;
+    const result = await livenessService.getSessionStatus(sessionId);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      meta: {
+        timestamp: new Date().toISOString(),
+      },
+    });
+  })
+);
+
+/**
  * POST /api/liveness/challenge
- * Initiates a 4-digit liveness challenge with 60s TTL for an escrowed transaction.
+ * Initiates a liveness challenge code for an escrowed transaction.
  */
 router.post(
   '/challenge',
@@ -38,16 +58,15 @@ router.post(
 
 /**
  * POST /api/liveness/verify
- * Validates challenge code and client liveness score. Atomically releases escrow on PASS.
+ * PUBLIC ENDPOINT: Validates biometric proof from receiver mobile/browser.
  */
 router.post(
   '/verify',
-  authenticateToken,
   asyncHandler(async (req, res) => {
     const parsed = livenessVerifySchema.parse(req.body);
     const userId = (req as unknown as { user?: { id: string } }).user?.id ?? 'usr_sandbox_default';
 
-    console.log(`[INFO] Liveness verify submitted for challenge: ${parsed.challengeId}`);
+    console.log(`[INFO] Public Liveness verify submitted for challenge: ${parsed.challengeId}`);
 
     const result = await livenessService.verifyLiveness(userId, parsed);
 
@@ -71,7 +90,7 @@ router.get(
   authenticateToken,
   asyncHandler(async (req, res) => {
     const userId = (req as unknown as { user?: { id: string } }).user?.id ?? 'usr_sandbox_default';
-    console.log(`[INFO] Pending liveness sessions requested for userId: ${userId}`);
+    console.log(`[INFO] Pending liveness sessions requested for userId:${userId}`);
 
     const sessions = await livenessService.getPendingSessions(userId);
 

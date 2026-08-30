@@ -34,6 +34,33 @@ router.post(
 );
 
 /**
+ * ✅ GET /api/complaints/mine
+ * Retrieves all complaints filed by the currently authenticated user.
+ */
+router.get(
+  '/mine',
+  authenticateToken,
+  asyncHandler(async (req, res) => {
+    const userId = (req as unknown as { user?: { id: string } }).user?.id ?? 'usr_sandbox_default';
+    const limit = Number(req.query.limit) || 20;
+    const offset = Number(req.query.offset) || 0;
+
+    console.log(`[INFO] Fetching complaints filed by user: ${userId}`);
+
+    const result = await complaintService.getMyComplaints(userId, limit, offset);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      meta: {
+        timestamp: new Date().toISOString(),
+        requestId: (req as unknown as { requestId?: string }).requestId ?? 'req_unknown',
+      },
+    });
+  })
+);
+
+/**
  * GET /api/complaints/against/:vpa
  * Retrieves aggregated complaint statistics and breakdown for a target VPA.
  */

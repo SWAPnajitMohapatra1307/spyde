@@ -1,6 +1,13 @@
 ﻿import { z } from 'zod';
 
-const VALID_CATEGORIES = ['FRAUD', 'IMPERSONATION', 'SPAM', 'HARASSMENT', 'OTHER'] as const;
+const VALID_CATEGORIES = [
+  'FRAUD',
+  'IMPERSONATION',
+  'SPAM',
+  'HARASSMENT',
+  'QR_TAMPERING',
+  'OTHER',
+] as const;
 
 export const fileComplaintSchema = z.object({
   targetVpa: z.string().regex(/^[a-z0-9.\-_]+@[a-z]+$/, 'Invalid VPA format'),

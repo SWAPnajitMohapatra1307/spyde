@@ -1,6 +1,6 @@
 export type TransactionStatus = 'PENDING' | 'CONFIRMED' | 'SUCCESS' | 'FAILED' | 'BLOCKED';
 export type RiskVerdict = 'PASS' | 'WARN' | 'CHALLENGE' | 'BLOCK';
-export type ComplaintCategory = 'FRAUD' | 'IMPERSONATION' | 'SPAM' | 'HARASSMENT' | 'OTHER';
+export type ComplaintCategory = 'FRAUD' | 'IMPERSONATION' | 'SPAM' | 'HARASSMENT' | 'QR_TAMPERING' | 'OTHER';
 export type ComplaintStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type LivenessVerdict = 'PASS' | 'FAIL' | 'EXPIRED';
 export type QrVerdict = 'VERIFIED' | 'UNVERIFIED' | 'TAMPERED';

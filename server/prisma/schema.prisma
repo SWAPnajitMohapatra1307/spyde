@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum TransactionStatus {
@@ -27,6 +28,7 @@ enum ComplaintCategory {
   IMPERSONATION
   SPAM
   HARASSMENT
+  QR_TAMPERING
   OTHER
 }
 
@@ -304,4 +306,23 @@ model SimTransaction {
   @@index([createdAt])
   @@index([riskVerdict])
   @@map("sim_transactions")
+}
+
+model QrScanLog {
+  id          String    @id @default(cuid())
+  scannedBy   String?   @map("scanned_by")
+  vpa         String
+  merchantId  String?   @map("merchant_id")
+  verdict     QrVerdict
+  deviceLat   Float?    @map("device_lat")
+  deviceLng   Float?    @map("device_lng")
+  merchantLat Float?    @map("merchant_lat")
+  merchantLng Float?    @map("merchant_lng")
+  distanceM   Float?    @map("distance_m")
+  rawPayload  String    @map("raw_payload") @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([verdict])
+  @@index([createdAt])
+  @@map("qr_scan_logs")
 }

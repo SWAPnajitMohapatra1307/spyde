@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from 'express';
 
+import { authenticateToken } from '../middleware/auth';
 import { moderateComplaintSchema } from '../schemas/admin.schema';
 import { adminService } from '../services/admin/index';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -34,6 +35,7 @@ const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
  */
 router.get(
   '/stats',
+  authenticateToken,
   requireAdmin,
   asyncHandler(async (_req, res) => {
     console.log('[INFO] Admin stats request received');
@@ -56,6 +58,7 @@ router.get(
  */
 router.get(
   '/top-flagged',
+  authenticateToken,
   requireAdmin,
   asyncHandler(async (_req, res) => {
     console.log('[INFO] Admin top-flagged VPAs request received');
@@ -73,11 +76,85 @@ router.get(
 );
 
 /**
+ * GET /api/admin/complaints
+ * Retrieves paginated complaints list for admin moderation.
+ */
+router.get(
+  '/complaints',
+  authenticateToken,
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const limit = Number(req.query.limit) || 50;
+    const offset = Number(req.query.offset) || 0;
+    const status = typeof req.query.status === 'string' ? req.query.status : undefined;
+
+    console.log('[INFO] Admin complaints fetch request received');
+    const result = await adminService.getComplaints(limit, offset, status);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      meta: {
+        timestamp: new Date().toISOString(),
+      },
+    });
+  })
+);
+
+/**
+ * GET /api/admin/tampers
+ * Retrieves flagged QR sticker tampering scan incidents.
+ */
+router.get(
+  '/tampers',
+  authenticateToken,
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const limit = Number(req.query.limit) || 50;
+    const offset = Number(req.query.offset) || 0;
+
+    console.log('[INFO] Admin QR tampers fetch request received');
+    const result = await adminService.getTamperReports(limit, offset);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      meta: {
+        timestamp: new Date().toISOString(),
+      },
+    });
+  })
+);
+
+/**
+ * GET /api/admin/network
+ * Retrieves fraud relationship node-edge graph.
+ */
+router.get(
+  '/network',
+  authenticateToken,
+  requireAdmin,
+  asyncHandler(async (_req, res) => {
+    console.log('[INFO] Admin fraud network graph request received');
+    const result = await adminService.getNetworkGraph();
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      meta: {
+        timestamp: new Date().toISOString(),
+      },
+    });
+  })
+);
+
+/**
  * PATCH /api/admin/complaints/:id
  * Updates complaint status (PENDING -> VERIFIED / REJECTED).
  */
 router.patch(
   '/complaints/:id',
+  authenticateToken,
   requireAdmin,
   asyncHandler(async (req, res) => {
     const { id } = req.params;

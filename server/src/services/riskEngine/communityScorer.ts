@@ -11,6 +11,7 @@ const CATEGORY_WEIGHTS: Record<ComplaintCategory, number> = {
   IMPERSONATION: 20,
   HARASSMENT: 10,
   SPAM: 5,
+  QR_TAMPERING: 30,
   OTHER: 5,
 };
 

@@ -14,28 +14,57 @@ import certificateRoutes from './routes/certificate.routes';
 import complaintRoutes from './routes/complaint.routes';
 import livenessRoutes from './routes/liveness.routes';
 import qrRoutes from './routes/qr.routes';
+import notificationRoutes from './routes/notification.routes'; // ✅ G2, G3 Import
 import { startEscrowCleanerJob } from './jobs/escrowCleaner';
 
 const app = express();
 
-app.use(helmet());
+// Security Headers (configured to allow cross-origin dev requests)
 app.use(
-  cors({
-    origin: env.CLIENT_ORIGIN || '*',
-    credentials: true,
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
+
+// ✅ CORS FIX: Allows localhost origins with credentials without wildcard (*) conflict
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  env.CLIENT_ORIGIN,
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, postman)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Permissive in development
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  })
+);
+
 app.use(cookieParser());
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '10mb' })); // Increased limit for face biometric frames
 app.use(morgan('[INFO] :method :url :status - :response-time ms'));
 
+// 🔍 Real-time Terminal Request Logger
 app.use((req: Request, _res: Response, next: NextFunction) => {
+  const time = new Date().toLocaleTimeString();
+  console.log(`📡 [${time}] INCOMING: ${req.method} ${req.originalUrl}`);
   (req as unknown as { requestId: string }).requestId =
     'req_' + Math.random().toString(36).substring(2, 15);
   next();
 });
 
-app.get('/health', (_req: Request, res: Response) => {
+// ✅ Both /health and /api/health work
+app.get(['/health', '/api/health'], (_req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     data: {
@@ -46,6 +75,7 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/circle', safeCircleRoutes);
 app.use('/api', paymentRoutes);
@@ -53,8 +83,10 @@ app.use('/api/liveness', livenessRoutes);
 app.use('/api/qr', qrRoutes);
 app.use('/api/certificates', certificateRoutes);
 app.use('/api/complaints', complaintRoutes);
+app.use('/api/notifications', notificationRoutes); // ✅ G2, G3 Mount
 app.use('/api/admin', adminRoutes);
 
+// Error Handling Middleware
 app.use(
   (
     err: Error & { statusCode?: number; code?: string; flatten?: () => { fieldErrors: unknown } },

@@ -87,11 +87,12 @@ export async function registerUser(
   ipAddress?: string
 ): Promise<{ user: { id: string; name: string; phone: string; vpa: string }; tokens: AuthTokens }> {
   const normalizedVpa = input.vpa.toLowerCase().trim();
+  const cleanPhone = input.phone.replace(/\D/g, '').slice(-10);
 
   const existingUser = await prisma.user.findFirst({
     where: {
       OR: [
-        { phone: input.phone },
+        { phone: cleanPhone },
         input.email ? { email: input.email } : {},
       ],
     },
@@ -115,11 +116,12 @@ export async function registerUser(
     const user = await tx.user.create({
       data: {
         name: input.name,
-        phone: input.phone,
+        phone: cleanPhone,
         email: input.email || null,
         passwordHash,
         riskScore: 0,
         isAdmin: false,
+        isActive: true,
       },
     });
 
@@ -127,7 +129,7 @@ export async function registerUser(
       data: {
         userId: user.id,
         ifsc: 'SBIN0000001',
-        accountNumberMasked: 'XXXXXX' + input.phone.slice(-4),
+        accountNumberMasked: 'XXXXXX' + cleanPhone.slice(-4),
         accountType: 'SAVINGS',
         balancePaisa: 1000000n,
       },
@@ -174,15 +176,23 @@ export async function loginUser(
   userAgent?: string,
   ipAddress?: string
 ): Promise<{ user: { id: string; name: string; phone: string; isAdmin: boolean }; tokens: AuthTokens }> {
+  // Extract clean 10-digit phone number regardless of country code prefix
+  const cleanPhone = input.phone.replace(/\D/g, '').slice(-10);
+
   const user = await prisma.user.findUnique({
-    where: { phone: input.phone },
+    where: { phone: cleanPhone },
   });
 
-  if (!user || !user.isActive) {
+  if (!user) {
+    throw new AuthError('Invalid phone number or password');
+  }
+
+  if (!user.isActive) {
     throw new AuthError('Invalid phone number or password');
   }
 
   const isPasswordValid = await verifyPassword(input.password, user.passwordHash);
+
   if (!isPasswordValid) {
     throw new AuthError('Invalid phone number or password');
   }
@@ -196,7 +206,7 @@ export async function loginUser(
   const accessToken = generateAccessToken(tokenPayload);
   const refreshToken = await createRefreshToken(user.id, userAgent, ipAddress);
 
-  console.log('[AUTH] User logged in: userId=' + user.id);
+  console.log('[AUTH] ✅ User logged in successfully: userId=' + user.id);
 
   return {
     user: {

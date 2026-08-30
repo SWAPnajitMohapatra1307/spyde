@@ -204,6 +204,7 @@ export async function confirmPayment(input: ConfirmPaymentInput) {
 
   const txn = await prisma.simTransaction.findUnique({
     where: { id: input.transactionId },
+    include: { certificate: true },
   });
 
   if (!txn) {
@@ -212,6 +213,18 @@ export async function confirmPayment(input: ConfirmPaymentInput) {
 
   if (txn.senderId !== input.senderId) {
     throw new ValidationError('Unauthorized to confirm this transaction');
+  }
+
+  // Idempotency check: If already completed, return existing success response cleanly
+  if (txn.status === TransactionStatus.SUCCESS) {
+    return {
+      transactionId: txn.id,
+      status: 'SUCCESS' as const,
+      amountRupees: toRupees(txn.amountPaisa),
+      receiverVpa: txn.receiverVpa,
+      timestamp: txn.updatedAt,
+      certificateId: txn.certificate?.id || null,
+    };
   }
 
   if (txn.status !== TransactionStatus.PENDING) {
@@ -275,7 +288,7 @@ export async function confirmPayment(input: ConfirmPaymentInput) {
     };
     const payloadHash = sha256(JSON.stringify(certPayload));
 
-    await tx.certificate.create({
+    const cert = await tx.certificate.create({
       data: {
         transactionId: completedTxn.id,
         payloadHash,
@@ -284,17 +297,18 @@ export async function confirmPayment(input: ConfirmPaymentInput) {
       },
     });
 
-    return completedTxn;
+    return { ...completedTxn, certificateId: cert.id };
   });
 
   console.log('[SUCCESS] Payment executed: txnId=' + updatedTxn.id + ' amountPaisa=' + updatedTxn.amountPaisa);
 
   return {
     transactionId: updatedTxn.id,
-    status: updatedTxn.status,
+    status: 'SUCCESS' as const,
     amountRupees: toRupees(updatedTxn.amountPaisa),
     receiverVpa: updatedTxn.receiverVpa,
     timestamp: updatedTxn.updatedAt,
+    certificateId: updatedTxn.certificateId,
   };
 }
 

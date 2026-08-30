@@ -9,44 +9,37 @@ export interface GraphScoreResult {
 export async function computeGraphScore(receiverVpa: string): Promise<GraphScoreResult> {
   const normalizedVpa = receiverVpa.toLowerCase().trim();
 
-  const handle = await prisma.simUpiHandle.findUnique({
-    where: { vpa: normalizedVpa },
-  });
-
-  if (!handle) {
-    return { score: 0, signals: [] };
-  }
-
-  const directFlaggedTxnCount = await prisma.simTransaction.count({
+  // 1. Direct check on VPA (Works for both regular users AND registered merchants)
+  const directFlaggedTxns = await prisma.simTransaction.count({
     where: {
-      AND: [
-        {
-          OR: [
-            { senderId: handle.userId },
-            { receiverId: handle.userId },
-          ],
-        },
-        {
-          OR: [
-            { riskVerdict: RiskVerdict.BLOCK },
-            { status: TransactionStatus.BLOCKED },
-          ],
-        },
+      receiverVpa: normalizedVpa,
+      OR: [
+        { riskVerdict: RiskVerdict.BLOCK },
+        { status: TransactionStatus.BLOCKED },
       ],
     },
   });
 
-  if (directFlaggedTxnCount > 0) {
+  if (directFlaggedTxns > 0) {
     return {
       score: 15,
       signals: [
         {
           type: 'GRAPH_DIRECT_ADJACENCY',
           weight: 15,
-          reason: 'Receiver has ' + directFlaggedTxnCount + ' direct transaction link(s) with flagged fraud accounts',
+          reason: `Receiver VPA has ${directFlaggedTxns} direct link(s) to flagged/blocked transactions`,
         },
       ],
     };
+  }
+
+  // 2. User handle check if available
+  const handle = await prisma.simUpiHandle.findUnique({
+    where: { vpa: normalizedVpa },
+  });
+
+  if (!handle) {
+    return { score: 0, signals: [] };
   }
 
   const intermediaryTxns = await prisma.simTransaction.findMany({
@@ -76,9 +69,7 @@ export async function computeGraphScore(receiverVpa: string): Promise<GraphScore
               { receiverId: { in: Array.from(neighborUserIds) } },
             ],
           },
-          {
-            riskVerdict: RiskVerdict.BLOCK,
-          },
+          { riskVerdict: RiskVerdict.BLOCK },
         ],
       },
     });

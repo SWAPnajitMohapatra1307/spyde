@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: 'ss01';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-spyde-canvas text-spyde-bone;
+    min-height: 100vh;
+  }
+
+  /* Scrollbar styling for dark theme */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-spyde-canvas;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-spyde-hairline rounded-pill;
+  }
+
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='hidden']),
+  textarea,
+  select {
+    color: #0f172a; /* slate-900 */
+    caret-color: #0f172a;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #94a3b8; /* slate-400 */
+    opacity: 1;
+  }
+
+  /* Chrome/Safari autofill can wash out text */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: #0f172a;
+    caret-color: #0f172a;
+    transition: background-color 9999s ease-in-out 0s;
+  }
+}
+
+@layer components {
+  /* Optional: shared light “pill” field used across Send Money / Safe Circle */
+  .input-pill {
+    @apply w-full rounded-full bg-white text-slate-900 placeholder:text-slate-400
+      border border-white/20 px-4 py-3 outline-none
+      focus:ring-2 focus:ring-primary/40;
+  }
+
+  .input-area {
+    @apply w-full rounded-2xl bg-white text-slate-900 placeholder:text-slate-400
+      border border-white/20 px-4 py-3 min-h-[120px] outline-none
+      focus:ring-2 focus:ring-primary/40;
+  }
+
+  /* Dark elevated field (matches ui/Input.tsx) */
+  .input-dark {
+    @apply w-full rounded-xl bg-slate-800/90 text-white placeholder:text-slate-400
+      border border-slate-700 px-3.5 py-2.5 outline-none
+      focus:ring-2 focus:ring-primary/50 focus:border-primary;
+  }
+}
+
+@layer utilities {
+  /* Tabular Numbers — NON-NEGOTIABLE for all financial data (Design.md §2.2) */
+  .tnum {
+    font-feature-settings: 'tnum', 'ss01';
+  }
+
+  /* Risk wash backgrounds */
+  .wash-jade {
+    background-color: rgba(26, 130, 118, 0.15);
+  }
+  .wash-amber {
+    background-color: rgba(217, 119, 6, 0.15);
+  }
+  .wash-terracotta {
+    background-color: rgba(194, 65, 12, 0.15);
+  }
+  .wash-ruby {
+    background-color: rgba(159, 18, 57, 0.15);
+  }
+
+  /* Ambient aura glow (Design.md §3 — no drop shadows) */
+  .aura-jade {
+    box-shadow: 0 0 40px rgba(26, 130, 118, 0.2);
+  }
+  .aura-ruby {
+    box-shadow: 0 0 40px rgba(159, 18, 57, 0.2);
+  }
+}
