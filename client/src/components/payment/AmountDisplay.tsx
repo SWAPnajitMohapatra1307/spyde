@@ -21,32 +21,32 @@ export const AmountDisplay: React.FC<AmountDisplayProps> = ({
   size = 'lg',
   className = '',
   showSymbol = true,
-  colorClass = 'text-bone',
+  colorClass = 'text-on-dark',
 }) => {
   const formatted = formatInrCurrency(amount);
 
   const sizeClasses = {
-    sm: 'text-lg font-semibold tracking-tight',
+    sm: 'text-base font-semibold tracking-tight',
     md: 'text-2xl font-bold tracking-tight',
-    lg: 'text-3xl sm:text-4xl font-extrabold tracking-tight',
-    xl: 'text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight',
+    lg: 'text-3xl sm:text-4xl font-bold tracking-tight',
+    xl: 'text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight',
   };
 
   const symbolSizes = {
-    sm: 'text-base mr-0.5',
+    sm: 'text-sm mr-0.5',
     md: 'text-xl mr-1',
     lg: 'text-2xl sm:text-3xl mr-1.5',
     xl: 'text-3xl sm:text-4xl mr-2',
   };
 
   return (
-    <span className={`inline-flex items-baseline tnum font-sans ${colorClass} ${sizeClasses[size]} ${className}`}>
+    <span className={`inline-flex items-baseline tnum font-mono ${colorClass} ${sizeClasses[size]} ${className}`}>
       {showSymbol && (
-        <span className={`font-medium opacity-80 select-none ${symbolSizes[size]}`}>
+        <span className={`font-sans font-medium text-muted select-none ${symbolSizes[size]}`}>
           ₹
         </span>
       )}
       <span>{formatted}</span>
     </span>
   );
-};
+};

@@ -18,13 +18,13 @@ export const QuickActions: React.FC<QuickActionsProps> = () => {
     },
     {
       label: 'Scan QR',
-      icon: <ScanLine className="w-5 h-5" />,
+      icon: <ScanLine className="w-5 h-5 text-primary" />,
       to: '/qr',
       variant: 'secondary' as const,
     },
     {
       label: 'Safe Circle',
-      icon: <ShieldCheck className="w-5 h-5" />,
+      icon: <ShieldCheck className="w-5 h-5 text-primary" />,
       to: '/circle',
       variant: 'secondary' as const,
     },
@@ -36,13 +36,13 @@ export const QuickActions: React.FC<QuickActionsProps> = () => {
         <Button
           key={action.to}
           variant={action.variant}
-          className="flex-col gap-2 py-4 h-auto"
+          className="flex-col gap-2 py-4 h-auto rounded-xl"
           onClick={(): void => navigate(action.to)}
         >
           {action.icon}
-          <span className="text-caption">{action.label}</span>
+          <span className="text-xs font-semibold">{action.label}</span>
         </Button>
       ))}
     </div>
   );
-};
+};

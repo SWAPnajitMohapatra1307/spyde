@@ -41,30 +41,30 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
     switch (verdict) {
       case 'PASS':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-primary/10 text-primary text-[10px] font-bold border border-primary/20">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-trading-up/10 text-trading-up text-[10px] font-mono font-semibold border border-trading-up/20">
             <ShieldCheck className="w-3 h-3" />
-            Clean
+            PASS
           </span>
         );
       case 'WARN':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-accent-amber/10 text-accent-amber text-[10px] font-bold border border-accent-amber/20">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-primary/15 text-primary text-[10px] font-mono font-semibold border border-primary/30">
             <AlertTriangle className="w-3 h-3" />
-            Warn
+            WARN
           </span>
         );
       case 'CHALLENGE':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-accent-terracotta/10 text-accent-terracotta text-[10px] font-bold border border-accent-terracotta/20">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-primary-active/15 text-primary-active text-[10px] font-mono font-semibold border border-primary-active/30">
             <ShieldAlert className="w-3 h-3" />
-            Challenged
+            CHALLENGE
           </span>
         );
       case 'BLOCK':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-accent-ruby/10 text-accent-ruby text-[10px] font-bold border border-accent-ruby/20">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-trading-down/15 text-trading-down text-[10px] font-mono font-semibold border border-trading-down/30">
             <ShieldAlert className="w-3 h-3" />
-            Blocked
+            BLOCK
           </span>
         );
       default:
@@ -75,22 +75,22 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
   return (
     <div
       className={cn(
-        'rounded-2xl border border-canvas-border bg-canvas-card p-5 space-y-4',
+        'rounded-xl border border-hairline-dark bg-surface-card-dark p-5 space-y-4 shadow-sm',
         className,
       )}
     >
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-bone">Recent Activity</h3>
-          <p className="text-xs text-bone-muted mt-0.5">
-            Real-time ledger and risk audit trail
+          <h3 className="text-sm font-bold text-on-dark font-sans">Recent Activity</h3>
+          <p className="text-xs text-muted mt-0.5 font-mono">
+            Real-time ledger & cryptographic audit trail
           </p>
         </div>
         {onViewAll && transactions.length > 0 && (
           <button
             type="button"
             onClick={onViewAll}
-            className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-0.5"
+            className="text-xs font-semibold text-primary hover:text-primary-hover inline-flex items-center gap-0.5 font-sans"
           >
             View all
             <ChevronRight className="w-3.5 h-3.5" />
@@ -99,20 +99,20 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
       </div>
 
       {isLoading && (
-        <div className="space-y-3 pt-1">
+        <div className="space-y-2.5 pt-1">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="flex items-center justify-between p-3 rounded-xl bg-canvas-subtle animate-pulse"
+              className="flex items-center justify-between p-3.5 rounded-lg bg-surface-elevated-dark/50 border border-hairline-dark animate-pulse"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-canvas-muted/40" />
+                <div className="w-9 h-9 rounded-full bg-surface-card-dark border border-hairline-dark" />
                 <div className="space-y-1.5">
-                  <div className="w-24 h-3 rounded bg-canvas-muted/40" />
-                  <div className="w-16 h-2.5 rounded bg-canvas-muted/30" />
+                  <div className="w-24 h-3 rounded bg-surface-card-dark" />
+                  <div className="w-16 h-2.5 rounded bg-surface-card-dark" />
                 </div>
               </div>
-              <div className="w-16 h-4 rounded bg-canvas-muted/40" />
+              <div className="w-16 h-4 rounded bg-surface-card-dark" />
             </div>
           ))}
         </div>
@@ -120,24 +120,24 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
 
       {!isLoading && !isError && transactions.length === 0 && (
         <div className="py-8 text-center space-y-2">
-          <div className="w-10 h-10 rounded-full bg-canvas-subtle border border-canvas-border flex items-center justify-center mx-auto text-bone-muted">
+          <div className="w-10 h-10 rounded-full bg-surface-elevated-dark border border-hairline-dark flex items-center justify-center mx-auto text-muted">
             <Clock className="w-5 h-5" />
           </div>
-          <p className="text-xs font-medium text-bone">No transactions yet</p>
-          <p className="text-[11px] text-bone-muted">
+          <p className="text-xs font-semibold text-on-dark">No transactions yet</p>
+          <p className="text-[11px] text-muted">
             Send money to populate your verified audit trail.
           </p>
         </div>
       )}
 
       {isError && (
-        <div className="py-6 text-center text-xs text-accent-ruby">
+        <div className="py-6 text-center text-xs text-trading-down font-medium">
           Failed to load recent activity.
         </div>
       )}
 
       {!isLoading && transactions.length > 0 && (
-        <div className="space-y-2.5">
+        <div className="space-y-2">
           {transactions.map((tx, idx) => {
             const isDebit = tx.isSender;
             const targetName = tx.receiverName || tx.receiverVpa || 'Beneficiary';
@@ -145,23 +145,23 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
             return (
               <motion.div
                 key={tx.id || idx}
-                initial={{ opacity: 0, y: 4 }}
+                initial={{ opacity: 0, y: 3 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, delay: idx * 0.04 }}
+                transition={{ duration: 0.15, delay: idx * 0.03 }}
                 onClick={() => navigate(`/history/${tx.id}`)}
-                className="group flex items-center justify-between p-3 rounded-xl bg-canvas-subtle hover:bg-canvas-muted/30 border border-transparent hover:border-canvas-border/70 transition-all cursor-pointer"
+                className="group flex items-center justify-between p-3 rounded-lg bg-surface-elevated-dark/30 hover:bg-surface-elevated-dark border border-hairline-dark transition-all duration-150 cursor-pointer"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="relative shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-canvas-card border border-canvas-border flex items-center justify-center text-xs font-bold text-bone">
+                    <div className="w-9 h-9 rounded-full bg-surface-card-dark border border-hairline-dark flex items-center justify-center text-xs font-bold text-on-dark font-mono">
                       {getInitials(targetName)}
                     </div>
                     <span
                       className={cn(
-                        'absolute -bottom-0.5 -right-0.5 p-0.5 rounded-full border border-canvas-bg',
+                        'absolute -bottom-0.5 -right-0.5 p-0.5 rounded-full border border-canvas',
                         isDebit
-                          ? 'bg-accent-terracotta text-bone'
-                          : 'bg-primary text-bone',
+                          ? 'bg-trading-down text-on-dark'
+                          : 'bg-trading-up text-on-dark',
                       )}
                     >
                       {isDebit ? (
@@ -174,13 +174,13 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-xs font-semibold text-bone truncate max-w-[130px] sm:max-w-[180px]">
+                      <p className="text-xs font-semibold text-on-dark truncate max-w-[130px] sm:max-w-[180px]">
                         {targetName}
                       </p>
                       {getVerdictBadge(tx.riskVerdict)}
                     </div>
-                    <p className="text-[11px] text-bone-muted font-mono truncate max-w-[140px]">
-                     {tx.receiverVpa || formatRelativeTime(tx.createdAt || '')}
+                    <p className="text-[11px] text-muted font-mono truncate max-w-[140px]">
+                      {tx.receiverVpa || formatRelativeTime(tx.createdAt || '')}
                     </p>
                   </div>
                 </div>
@@ -188,22 +188,21 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
                 <div className="text-right shrink-0 space-y-0.5">
                   <span
                     className={cn(
-                      'text-xs font-bold font-heading tnum block',
-                      isDebit ? 'text-bone' : 'text-primary',
+                      'text-xs font-bold font-mono tnum block',
+                      isDebit ? 'text-on-dark' : 'text-trading-up',
                     )}
                   >
                     {isDebit ? '-' : '+'}
                     {formatRupees(tx.amountRupees || 0)}
                   </span>
-                  <div className="flex items-center justify-end gap-1.5 text-[10px] text-bone-muted">
-                    {/* Phase 9 Dispute Deep Link for Failed Transactions */}
+                  <div className="flex items-center justify-end gap-1.5 text-[10px] text-muted font-mono">
                     {tx.status === 'FAILED' && (
                       <Link
                         to={`/complaints/new?vpa=${encodeURIComponent(tx.receiverVpa || '')}`}
                         onClick={(e: React.MouseEvent<HTMLAnchorElement>) =>
                           e.stopPropagation()
                         }
-                        className="text-[10px] font-semibold text-accent-ruby hover:underline inline-flex items-center gap-0.5"
+                        className="text-[10px] font-semibold text-trading-down hover:underline inline-flex items-center gap-0.5"
                       >
                         <AlertTriangle className="w-3 h-3" />
                         Dispute
@@ -228,4 +227,4 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = ({
       )}
     </div>
   );
-};
+};

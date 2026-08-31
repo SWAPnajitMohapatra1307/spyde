@@ -65,9 +65,9 @@ export const App: React.FC<AppProps> = () => {
 
   if (isInitializing) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center space-y-3">
-        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs font-mono text-slate-400">Loading SPYDE Secure Enclave...</span>
+      <div className="min-h-screen bg-canvas flex flex-col items-center justify-center space-y-3">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <span className="text-xs font-mono text-muted">Loading SPYDE Secure Enclave...</span>
       </div>
     );
   }

@@ -26,15 +26,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = () => {
   if (authLoading) {
     return (
       <div className="p-4 space-y-4 max-w-2xl mx-auto">
-        <Skeleton className="h-36 w-full rounded-card" />
-        <Skeleton className="h-20 w-full rounded-card" />
-        <Skeleton className="h-48 w-full rounded-card" />
+        <Skeleton className="h-36 w-full rounded-xl" />
+        <Skeleton className="h-20 w-full rounded-xl" />
+        <Skeleton className="h-48 w-full rounded-xl" />
       </div>
     );
   }
 
   return (
-    <div className="p-4 space-y-6 max-w-2xl mx-auto">
+    <div className="p-4 space-y-6 max-w-2xl mx-auto pb-10">
       {/* Balance Card */}
       <BalanceCard
         balanceRupees={bankAccount?.balanceRupees ?? 0}
@@ -44,19 +44,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = () => {
         primaryVpa={primaryVpa}
       />
 
-      {/* Escrow Banner Placeholder — wired in Phase 6/12 */}
-
       {/* Quick Actions */}
       <QuickActions />
 
       {/* Quick Pay Carousel */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-heading-md font-light text-spyde-bone">Trusted Payees</h3>
+          <h3 className="text-base font-bold text-on-dark font-sans">Trusted Payees</h3>
           <button
             type="button"
             onClick={(): void => navigate('/circle')}
-            className="text-caption text-spyde-sand hover:text-spyde-bone transition-colors flex items-center gap-1 font-normal"
+            className="text-xs font-semibold text-muted hover:text-primary transition-colors flex items-center gap-1 font-sans"
           >
             See All <ChevronRight className="w-3.5 h-3.5" />
           </button>
@@ -75,11 +73,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = () => {
       {/* Recent Transactions */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-heading-md font-light text-spyde-bone">Recent Transactions</h3>
+          <h3 className="text-base font-bold text-on-dark font-sans">Recent Transactions</h3>
           <button
             type="button"
             onClick={(): void => navigate('/history')}
-            className="text-caption text-spyde-sand hover:text-spyde-bone transition-colors flex items-center gap-1 font-normal"
+            className="text-xs font-semibold text-muted hover:text-primary transition-colors flex items-center gap-1 font-sans"
           >
             See All <ChevronRight className="w-3.5 h-3.5" />
           </button>
@@ -87,7 +85,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = () => {
         {historyLoading ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i: number) => (
-              <Skeleton key={i} className="h-16 w-full rounded-card" />
+              <Skeleton key={i} className="h-16 w-full rounded-xl" />
             ))}
           </div>
         ) : (
@@ -99,4 +97,4 @@ export const DashboardPage: React.FC<DashboardPageProps> = () => {
       <TipCard />
     </div>
   );
-};
+};

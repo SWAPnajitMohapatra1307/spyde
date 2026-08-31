@@ -195,18 +195,18 @@ export const QrScannerPage: React.FC = () => {
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate('/home')}
-          className="inline-flex items-center gap-1.5 text-bone-muted hover:text-bone text-sm transition-colors"
+          className="inline-flex items-center gap-1.5 text-muted hover:text-on-dark text-sm font-semibold transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Home
         </button>
-        <div className="flex items-center gap-1.5 text-[11px] font-mono bg-canvas-card px-2.5 py-1 rounded-pill border border-white/10 text-bone-muted">
-          <MapPin className={`w-3 h-3 ${coords.status === 'ACQUIRED' ? 'text-accent-green' : 'text-accent-yellow'}`} />
+        <div className="flex items-center gap-1.5 text-[11px] font-mono bg-surface-card-dark px-2.5 py-1 rounded-pill border border-hairline-dark text-muted">
+          <MapPin className={`w-3 h-3 ${coords.status === 'ACQUIRED' ? 'text-trading-up' : 'text-primary'}`} />
           {coords.status === 'ACQUIRED' ? 'GPS Locked' : 'Locating...'}
         </div>
       </div>
 
       {/* Main Viewfinder Box */}
-      <div className="relative w-full aspect-[4/5] max-h-[420px] rounded-3xl bg-canvas-card border-2 border-white/10 overflow-hidden shadow-2xl flex items-center justify-center">
+      <div className="relative w-full aspect-[4/5] max-h-[420px] rounded-xl bg-surface-card-dark border border-hairline-dark overflow-hidden shadow-2xl flex items-center justify-center">
         {hasCameraPermission ? (
           <video
             ref={videoRef}
@@ -216,9 +216,9 @@ export const QrScannerPage: React.FC = () => {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-b from-canvas-elevated to-canvas flex flex-col items-center justify-center p-6 text-center">
-            <Camera className="w-12 h-12 text-bone-muted/40 mb-2" />
-            <span className="text-xs text-bone-muted font-mono max-w-[200px]">
+          <div className="w-full h-full bg-surface-card-dark flex flex-col items-center justify-center p-6 text-center">
+            <Camera className="w-12 h-12 text-muted/40 mb-2" />
+            <span className="text-xs text-muted font-mono max-w-[200px]">
               Camera preview mode. Use presets below for testing.
             </span>
           </div>
@@ -226,7 +226,7 @@ export const QrScannerPage: React.FC = () => {
 
         {/* Reticle Scanner Overlay */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-8">
-          <div className="relative w-60 h-60 border-2 border-primary/60 rounded-2xl">
+          <div className="relative w-60 h-60 border-2 border-primary/60 rounded-xl">
             {/* 4 Corner Markers */}
             <div className="absolute -top-1 -left-1 w-5 h-5 border-t-4 border-l-4 border-primary rounded-tl-sm" />
             <div className="absolute -top-1 -right-1 w-5 h-5 border-t-4 border-r-4 border-primary rounded-tr-sm" />
@@ -245,8 +245,8 @@ export const QrScannerPage: React.FC = () => {
             onClick={() => setTorchActive(!torchActive)}
             className={`p-3 rounded-pill backdrop-blur-md border transition-all ${
               torchActive
-                ? 'bg-primary text-canvas border-primary'
-                : 'bg-canvas/80 text-bone border-white/15 hover:bg-canvas-elevated'
+                ? 'bg-primary text-on-primary border-primary'
+                : 'bg-surface-card-dark/90 text-on-dark border-hairline-dark hover:bg-surface-elevated-dark'
             }`}
           >
             <Flashlight className="w-4 h-4" />
@@ -255,8 +255,8 @@ export const QrScannerPage: React.FC = () => {
       </div>
 
       {/* Manual Input or UPI URL Form */}
-      <div className="bg-canvas-card border border-white/10 rounded-2xl p-4 space-y-3">
-        <div className="text-[11px] font-mono uppercase font-semibold text-bone-muted tracking-wider flex items-center gap-1.5">
+      <div className="bg-surface-card-dark border border-hairline-dark rounded-xl p-4 space-y-3 shadow-sm">
+        <div className="text-[11px] font-mono uppercase font-semibold text-muted tracking-wider flex items-center gap-1.5">
           <QrCode className="w-3.5 h-3.5 text-primary" /> Paste Raw UPI QR Link / VPA
         </div>
         <form onSubmit={handleManualSubmit} className="flex gap-2">
@@ -268,19 +268,19 @@ export const QrScannerPage: React.FC = () => {
               setParseError(null);
             }}
             placeholder="upi://pay?pa=merchant@upi&pn=Store..."
-            className="flex-1 bg-canvas border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-bone placeholder:text-bone-muted/40 focus:outline-none focus:border-primary"
+            className="flex-1 bg-canvas border border-hairline-dark rounded-lg px-3 py-2 text-xs font-mono text-on-dark placeholder:text-muted focus:outline-none focus:border-primary"
           />
           <button
             type="submit"
             disabled={!manualInput.trim()}
-            className="px-4 py-2 bg-primary hover:bg-primary/90 disabled:opacity-40 text-canvas font-bold text-xs rounded-xl transition-colors flex-shrink-0"
+            className="px-4 py-2 bg-primary hover:bg-primary-hover active:bg-primary-active disabled:opacity-40 text-on-primary font-semibold text-xs rounded-md transition-colors flex-shrink-0"
           >
             Inspect
           </button>
         </form>
 
         {parseError && (
-          <div className="p-2 rounded-lg bg-accent-red/10 border border-accent-red/20 text-accent-red text-xs flex items-center gap-1.5">
+          <div className="p-2 rounded-lg bg-trading-down/10 border border-trading-down/30 text-trading-down text-xs flex items-center gap-1.5 font-medium">
             <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
             <span>{parseError}</span>
           </div>
@@ -289,19 +289,19 @@ export const QrScannerPage: React.FC = () => {
 
       {/* Demo Simulation Presets */}
       <div className="space-y-2">
-        <div className="text-[10px] font-mono uppercase text-bone-muted tracking-wider flex items-center gap-1">
-          <Sparkles className="w-3 h-3 text-accent-yellow" /> Demo QR Presets (Instant Telemetry)
+        <div className="text-[10px] font-mono uppercase text-muted tracking-wider flex items-center gap-1 font-semibold">
+          <Sparkles className="w-3 h-3 text-primary" /> Demo QR Presets (Instant Telemetry)
         </div>
         <div className="grid grid-cols-2 gap-2.5">
           <button
             type="button"
             onClick={() => handlePresetScan('LEGIT_MERCHANT')}
-            className="p-3 rounded-xl bg-canvas-card hover:bg-canvas-elevated border border-accent-green/30 text-left transition-colors group"
+            className="p-3 rounded-xl bg-surface-card-dark hover:bg-surface-elevated-dark border border-trading-up/30 text-left transition-colors group shadow-sm"
           >
-            <div className="flex items-center gap-1.5 text-xs font-bold text-accent-green">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-trading-up font-sans">
               <ShieldCheck className="w-3.5 h-3.5" /> Legitimate QR
             </div>
-            <div className="text-[11px] text-bone-muted truncate mt-0.5">
+            <div className="text-[11px] text-muted truncate mt-0.5 font-mono">
               Verified Merchant
             </div>
           </button>
@@ -309,12 +309,12 @@ export const QrScannerPage: React.FC = () => {
           <button
             type="button"
             onClick={() => handlePresetScan('TAMPERED_STICKER')}
-            className="p-3 rounded-xl bg-canvas-card hover:bg-canvas-elevated border border-accent-red/30 text-left transition-colors group"
+            className="p-3 rounded-xl bg-surface-card-dark hover:bg-surface-elevated-dark border border-trading-down/30 text-left transition-colors group shadow-sm"
           >
-            <div className="flex items-center gap-1.5 text-xs font-bold text-accent-red">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-trading-down font-sans">
               <ShieldAlert className="w-3.5 h-3.5" /> Sticker Tamper
             </div>
-            <div className="text-[11px] text-bone-muted truncate mt-0.5">
+            <div className="text-[11px] text-muted truncate mt-0.5 font-mono">
               Overlay Fraud Mismatch
             </div>
           </button>
@@ -322,4 +322,4 @@ export const QrScannerPage: React.FC = () => {
       </div>
     </div>
   );
-};
+};

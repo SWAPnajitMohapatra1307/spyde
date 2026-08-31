@@ -1,9 +1,10 @@
 // client/src/pages/ProfilePage.tsx
 import React from 'react';
-import { User as UserIcon, Shield, Copy } from 'lucide-react';
+import { User as UserIcon, Shield, Copy, Moon } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useAuthStore } from '@/stores/authStore';
 import type { User as AppUser, BankAccount, UpiHandle } from '@/types/app';
 
@@ -14,7 +15,7 @@ export const ProfilePage: React.FC = () => {
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-bone-muted text-sm">Loading profile...</p>
+        <p className="text-muted text-sm font-mono">Loading profile...</p>
       </div>
     );
   }
@@ -34,20 +35,20 @@ export const ProfilePage: React.FC = () => {
     riskScore <= 30 ? 'safe' : riskScore <= 60 ? 'warn' : 'danger';
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-xl font-bold text-bone">Profile</h1>
+    <div className="max-w-2xl mx-auto space-y-6 px-4 py-4">
+      <h1 className="text-xl font-bold text-on-dark font-sans">Profile & Settings</h1>
 
       {/* User Info Card */}
       <Card className="p-6 text-center">
         <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-xl font-bold font-mono mx-auto">
           {initials}
         </div>
-        <h2 className="text-bone text-lg font-semibold mt-3">{user.name}</h2>
-        <p className="text-bone-muted text-xs font-mono mt-1">{user.phone}</p>
+        <h2 className="text-on-dark text-lg font-bold font-sans mt-3">{user.name}</h2>
+        <p className="text-muted text-xs font-mono mt-1">{user.phone}</p>
 
         <div className="flex items-center justify-center gap-3 mt-4">
           <Badge tone={trustBadgeTone}>
-            Trust: {riskScore}
+            Trust: {riskScore}/100
           </Badge>
           {user.isAdmin && (
             <Badge tone="danger">Admin</Badge>
@@ -55,9 +56,26 @@ export const ProfilePage: React.FC = () => {
         </div>
       </Card>
 
+      {/* Appearance & Theme Card */}
+      <div>
+        <h3 className="text-on-dark text-sm font-bold mb-3 flex items-center gap-2 font-sans">
+          <Moon className="w-4 h-4 text-primary" />
+          Appearance & Theme
+        </h3>
+        <Card className="p-4 flex items-center justify-between">
+          <div>
+            <p className="text-on-dark text-sm font-semibold font-sans">Theme Mode</p>
+            <p className="text-muted text-xs mt-0.5">
+              Switch between Binance Dark (Near-Black) and Light canvas modes
+            </p>
+          </div>
+          <ThemeToggle variant="pill" />
+        </Card>
+      </div>
+
       {/* Bank Accounts */}
       <div>
-        <h3 className="text-bone text-sm font-semibold mb-3 flex items-center gap-2">
+        <h3 className="text-on-dark text-sm font-bold mb-3 flex items-center gap-2 font-sans">
           <Shield className="w-4 h-4 text-primary" />
           Bank Accounts
         </h3>
@@ -67,14 +85,14 @@ export const ProfilePage: React.FC = () => {
               <Card key={account.id} className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-bone text-sm font-medium">
+                    <p className="text-on-dark text-sm font-semibold font-sans">
                       {account.accountType === 'SAVINGS' ? 'Savings' : 'Current'} Account
                     </p>
-                    <p className="text-bone-muted text-xs font-mono mt-1">
+                    <p className="text-muted text-xs font-mono mt-1">
                       {account.accountNumberMasked} · IFSC: {account.ifsc}
                     </p>
                   </div>
-                  <p className="text-bone font-mono text-sm tabular-nums">
+                  <p className="text-on-dark font-mono text-sm font-bold tnum">
                     ₹{Intl.NumberFormat('en-IN').format(account.balanceRupees)}
                   </p>
                 </div>
@@ -82,7 +100,7 @@ export const ProfilePage: React.FC = () => {
             ))
           ) : (
             <Card className="p-4 text-center">
-              <p className="text-bone-muted text-xs">No bank accounts linked</p>
+              <p className="text-muted text-xs">No bank accounts linked</p>
             </Card>
           )}
         </div>
@@ -90,7 +108,7 @@ export const ProfilePage: React.FC = () => {
 
       {/* UPI Handles */}
       <div>
-        <h3 className="text-bone text-sm font-semibold mb-3 flex items-center gap-2">
+        <h3 className="text-on-dark text-sm font-bold mb-3 flex items-center gap-2 font-sans">
           <UserIcon className="w-4 h-4 text-primary" />
           UPI Handles
         </h3>
@@ -99,21 +117,26 @@ export const ProfilePage: React.FC = () => {
             user.upiHandles.map((handle: UpiHandle) => (
               <Card key={handle.id} className="p-4 flex items-center justify-between">
                 <div>
-                  <p className="text-bone text-sm font-mono">{handle.vpa}</p>
+                  <p className="text-on-dark text-sm font-mono font-medium">{handle.vpa}</p>
                   {handle.isPrimary && (
-                    <Badge className="bg-accent-green/15 text-accent-green text-[10px] mt-1">
+                    <Badge className="bg-trading-up/15 text-trading-up text-[10px] mt-1 border-trading-up/30">
                       Primary
                     </Badge>
                   )}
                 </div>
-                <button className="p-2 text-bone-muted hover:text-bone rounded-lg hover:bg-white/5 transition-colors">
+                <button
+                  type="button"
+                  onClick={() => navigator.clipboard.writeText(handle.vpa)}
+                  className="p-2 text-muted hover:text-on-dark rounded-lg hover:bg-surface-elevated-dark transition-colors"
+                  aria-label="Copy UPI VPA"
+                >
                   <Copy className="w-3.5 h-3.5" />
                 </button>
               </Card>
             ))
           ) : (
             <Card className="p-4 text-center">
-              <p className="text-bone-muted text-xs">No UPI handles registered</p>
+              <p className="text-muted text-xs">No UPI handles registered</p>
             </Card>
           )}
         </div>
@@ -123,12 +146,12 @@ export const ProfilePage: React.FC = () => {
       <Card className="p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-bone text-sm font-medium">Face Verification</p>
-            <p className="text-bone-muted text-[10px] mt-1">
+            <p className="text-on-dark text-sm font-semibold font-sans">Face Verification</p>
+            <p className="text-muted text-xs mt-0.5">
               Enroll your face for biometric payment verification
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => window.location.href = '/cv/enroll'}>
+          <Button variant="secondary" size="sm" onClick={() => window.location.href = '/cv/enroll'}>
             Enroll
           </Button>
         </div>
@@ -138,20 +161,20 @@ export const ProfilePage: React.FC = () => {
       <Card className="p-4">
         <div className="grid grid-cols-2 gap-3 text-xs">
           <div>
-            <p className="text-bone-muted">Account ID</p>
-            <p className="text-bone font-mono mt-0.5">{user.id.slice(0, 12)}...</p>
+            <p className="text-muted font-mono uppercase text-[10px] tracking-wider font-semibold">Account ID</p>
+            <p className="text-on-dark font-mono mt-0.5 font-medium">{user.id.slice(0, 12)}...</p>
           </div>
           <div>
-            <p className="text-bone-muted">Role</p>
-            <p className="text-bone font-mono mt-0.5 capitalize">{user.role || 'user'}</p>
+            <p className="text-muted font-mono uppercase text-[10px] tracking-wider font-semibold">Role</p>
+            <p className="text-on-dark font-mono mt-0.5 capitalize font-medium">{user.role || 'user'}</p>
           </div>
           <div>
-            <p className="text-bone-muted">Email</p>
-            <p className="text-bone font-mono mt-0.5">{user.email || 'Not set'}</p>
+            <p className="text-muted font-mono uppercase text-[10px] tracking-wider font-semibold">Email</p>
+            <p className="text-on-dark font-mono mt-0.5 font-medium">{user.email || 'Not set'}</p>
           </div>
           <div>
-            <p className="text-bone-muted">Created</p>
-            <p className="text-bone font-mono mt-0.5">
+            <p className="text-muted font-mono uppercase text-[10px] tracking-wider font-semibold">Created</p>
+            <p className="text-on-dark font-mono mt-0.5 font-medium">
               {user.createdAt
                 ? new Date(user.createdAt).toLocaleDateString('en-IN')
                 : 'N/A'}
@@ -161,4 +184,4 @@ export const ProfilePage: React.FC = () => {
       </Card>
     </div>
   );
-};
+};

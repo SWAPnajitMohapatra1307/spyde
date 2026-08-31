@@ -5,6 +5,7 @@ import { Phone, Lock, User as UserIcon, Eye, EyeOff, Sparkles, Shield } from 'lu
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useAuthStore } from '@/stores/authStore';
 
 type AuthMode = 'login' | 'register';
@@ -79,15 +80,20 @@ export const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-canvas flex items-center justify-center px-4 py-8">
-      <Card className="w-full max-w-md p-6 sm:p-8">
+    <div className="min-h-screen bg-canvas flex items-center justify-center px-4 py-8 relative">
+      {/* Top right theme toggle */}
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
+
+      <Card className="w-full max-w-md p-6 sm:p-8 shadow-2xl relative z-10">
         {/* Logo */}
         <div className="text-center mb-6">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent-orange flex items-center justify-center text-canvas font-black text-2xl shadow-lg shadow-primary/20 mx-auto mb-3">
+          <div className="w-12 h-12 rounded-lg bg-primary flex items-center justify-center text-on-primary font-black text-2xl shadow-sm mx-auto mb-3">
             S
           </div>
-          <h1 className="text-bone text-xl font-bold tracking-wide">SPYDE</h1>
-          <p className="text-bone-muted text-xs mt-1">
+          <h1 className="text-on-dark text-xl font-bold tracking-wide font-sans">SPYDE</h1>
+          <p className="text-muted text-xs mt-1 font-mono">
             {mode === 'login'
               ? 'Sign in to your UPI fraud shield'
               : 'Create your secure account'}
@@ -95,15 +101,15 @@ export const AuthPage: React.FC = () => {
         </div>
 
         {/* Quick Sandbox Actions */}
-        <div className="mb-6 p-3 bg-white/5 border border-white/10 rounded-2xl space-y-2">
+        <div className="mb-6 p-3.5 bg-surface-elevated-dark border border-hairline-dark rounded-xl space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase text-bone-muted tracking-wider">
+            <span className="text-[10px] font-mono uppercase text-muted tracking-wider font-semibold">
               ⚡ Quick Sandbox Login
             </span>
             <button
               type="button"
               onClick={autofillRegisteredUser}
-              className="text-[10px] text-primary hover:underline font-mono"
+              className="text-[10px] text-primary hover:underline font-mono font-semibold"
             >
               Fill Credentials
             </button>
@@ -126,21 +132,21 @@ export const AuthPage: React.FC = () => {
               isLoading={isLoading}
               onClick={handleDemoAdminLogin}
             >
-              <Shield className="w-3.5 h-3.5" />
+              <Shield className="w-3.5 h-3.5 text-primary" />
               Admin Console
             </Button>
           </div>
         </div>
 
         {/* Mode Tabs */}
-        <div className="flex bg-white/5 rounded-xl p-1 mb-6">
+        <div className="flex bg-surface-elevated-dark rounded-lg p-1 mb-6 border border-hairline-dark">
           <button
             type="button"
             onClick={() => switchMode('login')}
-            className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors ${
+            className={`flex-1 py-2 rounded-md text-xs font-semibold transition-colors ${
               mode === 'login'
-                ? 'bg-primary text-bone'
-                : 'text-bone-muted hover:text-bone'
+                ? 'bg-primary text-on-primary shadow-sm'
+                : 'text-muted hover:text-on-dark'
             }`}
           >
             Sign In
@@ -148,10 +154,10 @@ export const AuthPage: React.FC = () => {
           <button
             type="button"
             onClick={() => switchMode('register')}
-            className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors ${
+            className={`flex-1 py-2 rounded-md text-xs font-semibold transition-colors ${
               mode === 'register'
-                ? 'bg-primary text-bone'
-                : 'text-bone-muted hover:text-bone'
+                ? 'bg-primary text-on-primary shadow-sm'
+                : 'text-muted hover:text-on-dark'
             }`}
           >
             Register
@@ -160,7 +166,7 @@ export const AuthPage: React.FC = () => {
 
         {/* Error Banner */}
         {error && (
-          <div className="mb-4 px-3 py-2 rounded-xl bg-accent-red/10 border border-accent-red/20 text-accent-red text-xs">
+          <div className="mb-4 px-3 py-2 rounded-lg bg-trading-down/10 border border-trading-down/30 text-trading-down text-xs font-medium">
             {error}
           </div>
         )}
@@ -193,7 +199,7 @@ export const AuthPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-8 text-bone-muted hover:text-bone"
+                className="absolute right-3 top-8 text-muted hover:text-white"
               >
                 {showPassword ? (
                   <EyeOff className="w-4 h-4" />
@@ -212,8 +218,8 @@ export const AuthPage: React.FC = () => {
               Sign In
             </Button>
 
-            <p className="text-center text-[11px] text-bone-muted pt-1">
-              Valid credentials: <span className="font-mono text-bone">9123456780 / Password@123</span>
+            <p className="text-center text-[11px] text-muted pt-1 font-mono">
+              Valid credentials: <span className="text-primary font-semibold">9123456780 / Password@123</span>
             </p>
           </form>
         )}
@@ -278,7 +284,7 @@ export const AuthPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-8 text-bone-muted hover:text-bone"
+                className="absolute right-3 top-8 text-muted hover:text-white"
               >
                 {showPassword ? (
                   <EyeOff className="w-4 h-4" />
@@ -301,4 +307,4 @@ export const AuthPage: React.FC = () => {
       </Card>
     </div>
   );
-};
+};

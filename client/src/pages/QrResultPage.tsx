@@ -61,30 +61,20 @@ export const QrResultPage: React.FC = () => {
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)] bg-canvas py-6 px-4">
-      {/* Dynamic Ambient Wash */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-96 opacity-15"
-        style={{
-          background: isTampered
-            ? 'radial-gradient(circle at 50% 0%, #EF4444 0%, rgba(239, 68, 68, 0) 70%)'
-            : 'radial-gradient(circle at 50% 0%, #10B981 0%, rgba(16, 185, 129, 0) 70%)',
-        }}
-      />
-
       <div className="relative max-w-xl mx-auto space-y-6">
         {/* Navigation */}
         <div className="flex items-center justify-between">
           <button
             onClick={() => navigate('/qr')}
-            className="inline-flex items-center gap-1.5 text-bone-muted hover:text-bone text-sm transition-colors"
+            className="inline-flex items-center gap-1.5 text-muted hover:text-on-dark text-sm font-semibold transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> Scan Another QR
           </button>
           <div
             className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-pill border text-xs font-mono font-bold ${
               isTampered
-                ? 'bg-accent-red/15 border-accent-red/30 text-accent-red'
-                : 'bg-accent-green/15 border-accent-green/30 text-accent-green'
+                ? 'bg-trading-down/15 border-trading-down/30 text-trading-down'
+                : 'bg-trading-up/15 border-trading-up/30 text-trading-up'
             }`}
           >
             {isTampered ? (
@@ -101,15 +91,15 @@ export const QrResultPage: React.FC = () => {
 
         {/* Title */}
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-bone tracking-tight flex items-center gap-2.5">
+          <h1 className="text-2xl sm:text-3xl font-bold text-on-dark tracking-tight flex items-center gap-2.5 font-sans">
             {isTampered ? (
-              <ShieldAlert className="w-8 h-8 text-accent-red flex-shrink-0" />
+              <ShieldAlert className="w-8 h-8 text-trading-down flex-shrink-0" />
             ) : (
-              <ShieldCheck className="w-8 h-8 text-accent-green flex-shrink-0" />
+              <ShieldCheck className="w-8 h-8 text-trading-up flex-shrink-0" />
             )}
             {isTampered ? 'QR Sticker Tamper Detected' : 'Verified Counter Standee'}
           </h1>
-          <p className="text-bone-muted text-sm mt-1">
+          <p className="text-muted text-xs sm:text-sm mt-1">
             {isTampered
               ? 'SPYDE computer vision and GPS correlation detected physical standee replacement.'
               : 'Physical standee matches registered merchant geofence and cryptographic signature.'}
@@ -126,8 +116,8 @@ export const QrResultPage: React.FC = () => {
 
         {/* Amount Box (if encoded in QR) */}
         {amount > 0 && (
-          <div className="bg-canvas-card border border-white/10 rounded-2xl p-4 flex items-center justify-between">
-            <span className="text-xs font-mono uppercase text-bone-muted tracking-wider">
+          <div className="bg-surface-card-dark border border-hairline-dark rounded-xl p-4 flex items-center justify-between shadow-sm">
+            <span className="text-xs font-mono uppercase text-muted tracking-wider font-semibold">
               Preset Amount in QR
             </span>
             <AmountDisplay amount={amount} size="md" />
@@ -135,47 +125,47 @@ export const QrResultPage: React.FC = () => {
         )}
 
         {/* Telemetry Inspection Grid */}
-        <div className="bg-canvas-card border border-white/10 rounded-2xl p-5 space-y-4">
-          <div className="text-xs font-mono font-bold uppercase text-bone tracking-wider">
+        <div className="bg-surface-card-dark border border-hairline-dark rounded-xl p-5 space-y-4 shadow-sm">
+          <div className="text-xs font-mono font-bold uppercase text-on-dark tracking-wider">
             Deep QR Telemetry Inspection
           </div>
 
           <div className="space-y-3 text-xs">
             {/* Geolocation check */}
-            <div className="p-3 rounded-xl bg-canvas border border-white/5 flex items-start gap-3">
-              <MapPin className={`w-4 h-4 mt-0.5 ${isTampered ? 'text-accent-red' : 'text-accent-green'}`} />
+            <div className="p-3 rounded-lg bg-canvas border border-hairline-dark flex items-start gap-3">
+              <MapPin className={`w-4 h-4 mt-0.5 ${isTampered ? 'text-trading-down' : 'text-trading-up'}`} />
               <div className="flex-1">
-                <div className="font-semibold text-bone flex items-center justify-between">
+                <div className="font-semibold text-on-dark flex items-center justify-between">
                   <span>Merchant GPS Geofence</span>
-                  <span className={`font-mono text-[11px] ${isTampered ? 'text-accent-red' : 'text-accent-green'}`}>
+                  <span className={`font-mono text-[11px] font-bold ${isTampered ? 'text-trading-down' : 'text-trading-up'}`}>
                     {isTampered ? 'FAIL' : 'MATCH'}
                   </span>
                 </div>
-                <div className="text-bone-muted mt-0.5">{gpsVarianceDistance}</div>
+                <div className="text-muted mt-0.5 font-mono">{gpsVarianceDistance}</div>
               </div>
             </div>
 
             {/* Physical Layer / Edge Discontinuity */}
-            <div className="p-3 rounded-xl bg-canvas border border-white/5 flex items-start gap-3">
-              <Layers className={`w-4 h-4 mt-0.5 ${isTampered ? 'text-accent-red' : 'text-accent-green'}`} />
+            <div className="p-3 rounded-lg bg-canvas border border-hairline-dark flex items-start gap-3">
+              <Layers className={`w-4 h-4 mt-0.5 ${isTampered ? 'text-trading-down' : 'text-trading-up'}`} />
               <div className="flex-1">
-                <div className="font-semibold text-bone flex items-center justify-between">
+                <div className="font-semibold text-on-dark flex items-center justify-between">
                   <span>Physical Layer Discontinuity</span>
-                  <span className={`font-mono text-[11px] ${isTampered ? 'text-accent-red' : 'text-accent-green'}`}>
+                  <span className={`font-mono text-[11px] font-bold ${isTampered ? 'text-trading-down' : 'text-trading-up'}`}>
                     {isTampered ? 'SUSPICIOUS OVERLAY' : 'AUTHENTIC'}
                   </span>
                 </div>
-                <div className="text-bone-muted mt-0.5">{layerDiscontinuityScore}</div>
+                <div className="text-muted mt-0.5 font-mono">{layerDiscontinuityScore}</div>
               </div>
             </div>
 
             {/* Merchant Category Code */}
             {merchantCode && (
-              <div className="p-3 rounded-xl bg-canvas border border-white/5 flex items-start gap-3">
-                <Building2 className="w-4 h-4 text-bone-muted mt-0.5" />
+              <div className="p-3 rounded-lg bg-canvas border border-hairline-dark flex items-start gap-3">
+                <Building2 className="w-4 h-4 text-muted mt-0.5" />
                 <div className="flex-1">
-                  <div className="font-semibold text-bone">Merchant Category Code (MCC)</div>
-                  <div className="text-bone-muted font-mono mt-0.5">{merchantCode}</div>
+                  <div className="font-semibold text-on-dark">Merchant Category Code (MCC)</div>
+                  <div className="text-muted font-mono mt-0.5">{merchantCode}</div>
                 </div>
               </div>
             )}
@@ -184,13 +174,13 @@ export const QrResultPage: React.FC = () => {
 
         {/* Warning Callout for Tampered Case */}
         {isTampered && (
-          <div className="p-4 rounded-2xl bg-accent-red/10 border border-accent-red/25 text-xs text-bone space-y-1.5">
-            <div className="font-bold text-accent-red uppercase tracking-wider font-mono flex items-center gap-1.5">
+          <div className="p-4 rounded-xl bg-surface-card-dark border border-trading-down/30 text-xs text-body space-y-1.5">
+            <div className="font-bold text-trading-down uppercase tracking-wider font-mono flex items-center gap-1.5">
               <AlertTriangle className="w-4 h-4" /> Fraud Alert: Do Not Pay
             </div>
-            <p className="text-bone-muted leading-relaxed">
+            <p className="text-muted leading-relaxed">
               Scammers frequently paste fraudulent stickers over store QR stands. If you did not intend to pay{' '}
-              <span className="text-bone font-semibold">{vpa}</span>, report this location to protect other shoppers.
+              <span className="text-on-dark font-semibold font-mono">{vpa}</span>, report this location to protect other shoppers.
             </p>
           </div>
         )}
@@ -202,7 +192,7 @@ export const QrResultPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleReportTamper}
-                className="w-full py-4 px-6 rounded-pill bg-accent-red hover:bg-accent-red/90 text-white font-bold text-sm tracking-wide transition-all shadow-lg flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-6 rounded-md bg-trading-down hover:opacity-90 active:opacity-100 text-on-dark font-semibold text-sm tracking-wide transition-all shadow-md flex items-center justify-center gap-2"
               >
                 <FileWarning className="w-4 h-4" />
                 <span>Report Tampered Standee to Store</span>
@@ -211,7 +201,7 @@ export const QrResultPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleProceedToPay}
-                className="w-full py-3 px-5 rounded-pill bg-canvas-card hover:bg-canvas-elevated border border-white/10 text-bone-muted hover:text-bone font-medium text-xs tracking-wider transition-colors flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 px-5 rounded-md bg-surface-card-dark hover:bg-surface-elevated-dark border border-hairline-dark text-muted hover:text-on-dark font-semibold text-xs tracking-wider transition-colors flex items-center justify-center gap-1.5"
               >
                 <span>Proceed Anyway (Strict Risk Controls Applied)</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -221,9 +211,9 @@ export const QrResultPage: React.FC = () => {
             <button
               type="button"
               onClick={handleProceedToPay}
-              className="w-full py-4 px-6 rounded-pill bg-primary hover:bg-primary/90 text-canvas font-bold text-sm tracking-wide transition-all shadow-lg flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-6 rounded-md bg-primary hover:bg-primary-hover active:bg-primary-active text-on-primary font-semibold text-sm tracking-wide transition-all shadow-md flex items-center justify-center gap-2"
             >
-              <Lock className="w-4 h-4" />
+              <Lock className="w-4 h-4 stroke-[2.5]" />
               <span>Proceed to Pay {amount > 0 ? `₹${amount}` : name}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
@@ -232,4 +222,4 @@ export const QrResultPage: React.FC = () => {
       </div>
     </div>
   );
-};
+};

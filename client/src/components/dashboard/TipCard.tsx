@@ -24,13 +24,13 @@ export const TipCard: React.FC<TipCardProps> = () => {
   }, []);
 
   return (
-    <Card level={2} className="p-4 flex items-start space-x-3">
-      <Lightbulb className="w-5 h-5 text-spyde-amber flex-shrink-0 mt-0.5" />
+    <Card variant="elevated" className="p-4 flex items-start space-x-3">
+      <Lightbulb className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
       <div>
-        <p className="text-caption text-spyde-sand font-normal">
-          <span className="text-spyde-bone">SPYDE Tip:</span> {tips[tipIndex]}
+        <p className="text-xs text-muted leading-relaxed font-sans">
+          <span className="text-primary font-bold">SPYDE Tip:</span> {tips[tipIndex]}
         </p>
       </div>
     </Card>
   );
-};
+};
