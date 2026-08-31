@@ -1,75 +1,111 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import { cn } from '../../lib/utils';
+import type { RiskVerdict } from '../../types/app';
 
-export interface RiskScoreRingProps {
-  score: number;
+interface RiskScoreRingProps {
+  score: number; // 0 to 100
+  verdict?: RiskVerdict;
   size?: number;
   strokeWidth?: number;
-  className?: string;
   showLabel?: boolean;
+  className?: string;
 }
 
 export const RiskScoreRing: React.FC<RiskScoreRingProps> = ({
   score,
-  size = 100,
-  strokeWidth = 8,
-  className = '',
+  verdict,
+  size = 110,
+  strokeWidth = 9,
   showLabel = true,
+  className,
 }) => {
-  const clampedScore = Math.max(0, Math.min(100, score));
+  const normalizedScore = Math.max(0, Math.min(100, score));
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (clampedScore / 100) * circumference;
+  const strokeDashoffset = circumference - (normalizedScore / 100) * circumference;
 
-  const getScoreColor = (val: number) => {
-    if (val <= 20) return '#10B981'; // Accent Green
-    if (val <= 50) return '#F59E0B'; // Accent Yellow / Amber
-    if (val <= 75) return '#F97316'; // Accent Orange / Terracotta
-    return '#EF4444'; // Accent Red / Ruby
+  const getColorScheme = () => {
+    if (verdict === 'BLOCK' || normalizedScore >= 85) {
+      return {
+        stroke: '#f6465d', // Trading Red
+        text: 'text-trading-down',
+        label: 'Critical Risk',
+      };
+    }
+    if (verdict === 'CHALLENGE' || normalizedScore >= 65) {
+      return {
+        stroke: '#f0b90b', // Active Amber
+        text: 'text-primary-active',
+        label: 'High Friction',
+      };
+    }
+    if (verdict === 'WARN' || normalizedScore >= 30) {
+      return {
+        stroke: '#fcd535', // Binance Yellow
+        text: 'text-primary',
+        label: 'Caution Required',
+      };
+    }
+    return {
+      stroke: '#0ecb81', // Trading Green
+      text: 'text-trading-up',
+      label: 'Safe Transfer',
+    };
   };
 
-  const ringColor = getScoreColor(clampedScore);
+  const scheme = getColorScheme();
 
   return (
-    <div className={`relative inline-flex items-center justify-center ${className}`}>
-      <svg
-        width={size}
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        className="transform -rotate-90"
-      >
-        {/* Background Track */}
+    <div
+      className={cn('relative inline-flex flex-col items-center justify-center select-none', className)}
+      style={{ width: size, height: size }}
+    >
+      <svg width={size} height={size} className="transform -rotate-90">
+        {/* Track */}
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(255, 255, 255, 0.08)"
+          stroke="currentColor"
           strokeWidth={strokeWidth}
-          fill="transparent"
+          className="text-hairline-dark fill-transparent"
         />
-        {/* Progress Arc */}
-        <circle
+        {/* Progress Ring */}
+        <motion.circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={ringColor}
+          stroke={scheme.stroke}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset }}
+          transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
           strokeLinecap="round"
-          fill="transparent"
-          className="transition-all duration-700 ease-out"
+          className="fill-transparent"
         />
       </svg>
 
+      {/* Center Readout */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+        <span className={cn('text-2xl font-bold font-mono tnum leading-none', scheme.text)}>
+          {normalizedScore}
+        </span>
+        <span className="text-[10px] font-mono font-medium text-muted mt-0.5 tracking-wider uppercase">
+          / 100
+        </span>
+      </div>
+
       {showLabel && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-          <span className="text-bone font-black text-xl sm:text-2xl tnum leading-none">
-            {clampedScore}
-          </span>
-          <span className="text-[10px] text-bone-muted uppercase font-semibold tracking-wider mt-0.5">
-            / 100
-          </span>
-        </div>
+        <span
+          className={cn(
+            'absolute -bottom-6 text-[11px] font-mono font-semibold tracking-wide uppercase whitespace-nowrap',
+            scheme.text
+          )}
+        >
+          {scheme.label}
+        </span>
       )}
     </div>
   );

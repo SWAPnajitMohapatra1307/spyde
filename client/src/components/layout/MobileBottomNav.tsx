@@ -13,7 +13,7 @@ export const MobileBottomNav: React.FC = () => {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-canvas-card border-t border-white/5 px-2 flex items-center justify-around z-40 pb-safe">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface-card-dark border-t border-hairline-dark px-2 flex items-center justify-around z-40 pb-safe">
       {navItems.map((item) => {
         const Icon = item.icon;
         if (item.highlight) {
@@ -23,10 +23,10 @@ export const MobileBottomNav: React.FC = () => {
               to={item.to}
               className="flex flex-col items-center justify-center -translate-y-4"
             >
-              <div className="w-12 h-12 rounded-full bg-primary text-bone flex items-center justify-center shadow-lg shadow-primary/20 border-4 border-canvas">
-                <Icon className="w-5 h-5" />
+              <div className="w-12 h-12 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg border-4 border-canvas">
+                <Icon className="w-5 h-5 stroke-[2.5]" />
               </div>
-              <span className="text-[10px] font-medium text-bone-muted mt-1">
+              <span className="text-[10px] font-semibold text-primary mt-1 font-mono">
                 {item.label}
               </span>
             </NavLink>
@@ -39,7 +39,7 @@ export const MobileBottomNav: React.FC = () => {
             to={item.to}
             className={({ isActive }) =>
               `flex flex-col items-center justify-center w-12 py-1 transition-colors ${
-                isActive ? 'text-primary' : 'text-bone-muted hover:text-bone'
+                isActive ? 'text-primary font-semibold' : 'text-muted hover:text-body'
               }`
             }
           >
@@ -50,4 +50,4 @@ export const MobileBottomNav: React.FC = () => {
       })}
     </nav>
   );
-};
+};

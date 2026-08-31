@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@/stores/authStore';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { cn } from '@/lib/utils';
 
 export interface SidebarProps {
@@ -46,10 +47,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   const linkClass = ({ isActive }: { isActive: boolean }): string =>
     cn(
-      'flex items-center space-x-3 px-4 py-2.5 rounded-pill text-body-md transition-colors',
+      'flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150',
       isActive
-        ? 'bg-spyde-jade/15 text-spyde-jade'
-        : 'text-spyde-sand hover:text-spyde-bone hover:bg-spyde-surface-2'
+        ? 'bg-primary text-on-primary font-bold shadow-sm'
+        : 'text-muted hover:text-on-dark hover:bg-surface-elevated-dark'
     );
 
   return (
@@ -57,7 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-40 md:hidden"
+          className="fixed inset-0 bg-black/80 z-40 md:hidden"
           onClick={onClose}
           role="presentation"
         />
@@ -65,59 +66,72 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       <aside
         className={cn(
-          'fixed top-0 left-0 h-full w-64 bg-spyde-surface-1 border-r border-spyde-hairline z-50 transform transition-transform duration-200 md:translate-x-0 md:static md:z-auto',
+          'fixed top-0 left-0 h-full w-64 bg-surface-card-dark border-r border-hairline-dark z-50 transform transition-transform duration-200 md:translate-x-0 md:static md:z-auto flex flex-col justify-between',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        {/* Sidebar Header */}
-        <div className="h-14 flex items-center justify-between px-4 border-b border-spyde-hairline">
-          <span className="text-heading-md font-light text-spyde-bone">Navigation</span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="md:hidden p-1 rounded-pill hover:bg-spyde-surface-2 text-spyde-sand"
-          >
-            <X className="w-5 h-5" />
-          </button>
+        <div>
+          {/* Sidebar Header */}
+          <div className="h-14 flex items-center justify-between px-4 border-b border-hairline-dark">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded bg-primary flex items-center justify-center text-on-primary font-black text-sm">
+                S
+              </div>
+              <span className="text-base font-bold text-on-dark font-sans">SPYDE</span>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="md:hidden p-1.5 rounded-lg hover:bg-surface-elevated-dark text-muted"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Nav Links */}
+          <nav className="p-3 space-y-1">
+            {navItems.map((item: NavItem) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={linkClass}
+                onClick={onClose}
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </NavLink>
+            ))}
+
+            {/* Admin Section */}
+            {user?.isAdmin && (
+              <>
+                <div className="pt-4 pb-2 px-3">
+                  <span className="text-[10px] font-mono text-muted uppercase tracking-wider font-semibold">
+                    Admin Control
+                  </span>
+                </div>
+                {adminItems.map((item: NavItem) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={linkClass}
+                    onClick={onClose}
+                  >
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </NavLink>
+                ))}
+              </>
+            )}
+          </nav>
         </div>
 
-        {/* Nav Links */}
-        <nav className="p-3 space-y-1">
-          {navItems.map((item: NavItem) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={linkClass}
-              onClick={onClose}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-
-          {/* Admin Section */}
-          {user?.isAdmin && (
-            <>
-              <div className="pt-4 pb-2 px-4">
-                <span className="text-caption text-spyde-muted font-normal uppercase tracking-wider">
-                  Admin
-                </span>
-              </div>
-              {adminItems.map((item: NavItem) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={linkClass}
-                  onClick={onClose}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </NavLink>
-              ))}
-            </>
-          )}
-        </nav>
+        {/* Sidebar Footer: Theme Toggle */}
+        <div className="p-3 border-t border-hairline-dark">
+          <ThemeToggle variant="pill" className="w-full justify-between" />
+        </div>
       </aside>
     </>
   );
 };
+

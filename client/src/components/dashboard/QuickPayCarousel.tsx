@@ -34,17 +34,17 @@ export const QuickPayCarousel: React.FC<QuickPayCarouselProps> = ({ contacts }) 
           key={contact.id}
           type="button"
           onClick={(): void => handleContactTap(contact)}
-          className="flex flex-col items-center space-y-1.5 min-w-[56px]"
+          className="flex flex-col items-center space-y-1.5 min-w-[56px] group"
         >
           <div className="relative">
-            <div className="w-12 h-12 rounded-full bg-spyde-surface-2 border border-spyde-hairline flex items-center justify-center text-spyde-bone text-caption font-normal">
+            <div className="w-12 h-12 rounded-full bg-surface-elevated-dark border border-hairline-dark group-hover:border-primary flex items-center justify-center text-on-dark text-xs font-mono font-bold transition-colors">
               {getInitials(contact.contactName)}
             </div>
             {contact.hasAnomaly && (
-              <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-spyde-ruby border-2 border-spyde-surface-1" />
+              <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-trading-down border-2 border-surface-card-dark" />
             )}
           </div>
-          <span className="text-caption text-spyde-sand font-normal truncate max-w-[56px]">
+          <span className="text-xs text-muted group-hover:text-body font-medium truncate max-w-[56px] transition-colors">
             {contact.contactName.split(' ')[0]}
           </span>
         </button>
@@ -54,13 +54,13 @@ export const QuickPayCarousel: React.FC<QuickPayCarouselProps> = ({ contacts }) 
       <button
         type="button"
         onClick={(): void => navigate('/circle')}
-        className="flex flex-col items-center space-y-1.5 min-w-[56px]"
+        className="flex flex-col items-center space-y-1.5 min-w-[56px] group"
       >
-        <div className="w-12 h-12 rounded-full bg-spyde-surface-2 border border-dashed border-spyde-hairline flex items-center justify-center text-spyde-muted">
+        <div className="w-12 h-12 rounded-full bg-surface-card-dark border border-dashed border-hairline-dark group-hover:border-primary flex items-center justify-center text-muted group-hover:text-primary transition-colors">
           <Plus className="w-5 h-5" />
         </div>
-        <span className="text-caption text-spyde-muted font-normal">Add</span>
+        <span className="text-xs text-muted group-hover:text-primary font-medium transition-colors">Add</span>
       </button>
     </div>
   );
-};
+};

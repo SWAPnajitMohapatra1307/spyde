@@ -9,20 +9,20 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 const verdictStyles: Record<Verdict, string> = {
-  PASS: 'bg-accent-green/15 text-accent-green border-accent-green/30',
-  WARN: 'bg-accent-yellow/15 text-accent-yellow border-accent-yellow/30',
-  CHALLENGE: 'bg-primary/15 text-primary border-primary/30',
-  BLOCK: 'bg-accent-red/15 text-accent-red border-accent-red/30',
-  REFUNDED: 'bg-white/10 text-bone-muted border-white/15',
+  PASS: 'bg-trading-up/15 text-trading-up border-trading-up/30',
+  WARN: 'bg-primary/15 text-primary border-primary/30',
+  CHALLENGE: 'bg-primary-active/15 text-primary-active border-primary-active/30',
+  BLOCK: 'bg-trading-down/15 text-trading-down border-trading-down/30',
+  REFUNDED: 'bg-surface-elevated-dark text-muted border-hairline-dark',
 };
 
 const toneStyles: Record<string, string> = {
-  safe: 'bg-accent-green/15 text-accent-green border-accent-green/30',
-  warn: 'bg-accent-yellow/15 text-accent-yellow border-accent-yellow/30',
-  danger: 'bg-accent-red/15 text-accent-red border-accent-red/30',
-  neutral: 'bg-white/10 text-bone-muted border-white/15',
+  safe: 'bg-trading-up/15 text-trading-up border-trading-up/30',
+  warn: 'bg-primary/15 text-primary border-primary/30',
+  danger: 'bg-trading-down/15 text-trading-down border-trading-down/30',
+  neutral: 'bg-surface-elevated-dark text-muted border-hairline-dark',
   primary: 'bg-primary/15 text-primary border-primary/30',
-  challenge: 'bg-primary/15 text-primary border-primary/30',
+  challenge: 'bg-primary-active/15 text-primary-active border-primary-active/30',
 };
 
 export const Badge: React.FC<BadgeProps> = ({
@@ -37,11 +37,11 @@ export const Badge: React.FC<BadgeProps> = ({
     ? verdictStyles[verdict] ?? verdictStyles.PASS
     : tone
       ? toneStyles[tone] ?? toneStyles.neutral
-      : 'bg-white/10 text-bone-muted border-white/15';
+      : 'bg-surface-elevated-dark text-muted border-hairline-dark';
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-pill text-[10px] font-mono font-bold border ${style} ${className}`}
+      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-pill text-[11px] font-mono font-semibold border ${style} ${className}`}
       {...rest}
     >
       {dot && <span className="w-1.5 h-1.5 rounded-full bg-current" />}
@@ -55,4 +55,4 @@ export const VerdictBadge: React.FC<{ verdict: Verdict; className?: string }> = 
   className = '',
 }) => {
   return <Badge verdict={verdict} className={className} />;
-};
+};

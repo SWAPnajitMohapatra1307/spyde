@@ -1,105 +1,178 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Zapier Light Theme Tokens - Warm Cream Canvas (#fffefb) + Coffee Ink (#201515) + Zapier Orange (#ff4f00) */
+    --canvas-bg: #fffefb;
+    --canvas-subtle: #f8f4f0;
+    --surface-card: #fffefb;
+    --surface-elevated: #f8f4f0;
+    --hairline: #e8e3d9;
+    --hairline-strong: #c5c0b1;
+    --text-body: #605d52;
+    --text-on-dark: #201515;
+    --text-muted: #939084;
+    --input-bg: #fffefb;
+    --input-border: #e8e3d9;
+    --input-text: #201515;
+    --scrollbar-bg: #fffefb;
+    --scrollbar-thumb: #c5c0b1;
+    --scrollbar-thumb-hover: #939084;
+  }
+
+  .dark {
+    /* Zapier Dark Theme Tokens - Deep Warm Coffee Canvas (#1c1413) + Flat Cards (#1c1413) with Thin Border (#362826) */
+    --canvas-bg: #1c1413;
+    --canvas-subtle: #261b1a;
+    --surface-card: #1c1413;
+    --surface-elevated: #261b1a;
+    --hairline: #362826;
+    --hairline-strong: #4d3c39;
+    --text-body: #eae5dd;
+    --text-on-dark: #fffefb;
+    --text-muted: #a39b91;
+    --input-bg: #1c1413;
+    --input-border: #362826;
+    --input-text: #fffefb;
+    --scrollbar-bg: #1c1413;
+    --scrollbar-thumb: #362826;
+    --scrollbar-thumb-hover: #a39b91;
+  }
+
   html {
-    font-family: 'Inter', system-ui, sans-serif;
-    font-feature-settings: 'ss01';
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: var(--canvas-bg);
+    color: var(--text-body);
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   body {
-    @apply bg-spyde-canvas text-spyde-bone;
+    background-color: var(--canvas-bg);
+    color: var(--text-body);
     min-height: 100vh;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
-  /* Scrollbar styling for dark theme */
+  /* Zapier Warm Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-spyde-canvas;
+    background: var(--scrollbar-bg);
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-spyde-hairline rounded-pill;
+    background: var(--scrollbar-thumb);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
   }
 
+  /* Standard Inputs */
   input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='hidden']),
   textarea,
   select {
-    color: #0f172a; /* slate-900 */
-    caret-color: #0f172a;
+    color: var(--input-text);
+    caret-color: #ff4f00;
   }
 
   input::placeholder,
   textarea::placeholder {
-    color: #94a3b8; /* slate-400 */
+    color: var(--text-muted);
     opacity: 1;
   }
 
-  /* Chrome/Safari autofill can wash out text */
+  /* Autofill styling */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
   textarea:-webkit-autofill,
   select:-webkit-autofill {
-    -webkit-text-fill-color: #0f172a;
-    caret-color: #0f172a;
+    -webkit-text-fill-color: var(--input-text);
+    caret-color: #ff4f00;
     transition: background-color 9999s ease-in-out 0s;
   }
 }
 
 @layer components {
-  /* Optional: shared light “pill” field used across Send Money / Safe Circle */
-  .input-pill {
-    @apply w-full rounded-full bg-white text-slate-900 placeholder:text-slate-400
-      border border-white/20 px-4 py-3 outline-none
-      focus:ring-2 focus:ring-primary/40;
+  /* Zapier Primary CTA Button (Zapier Orange #ff4f00 with Warm White text, 12px rounded-xl) */
+  .btn-zapier-primary,
+  .btn-binance-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-on-primary transition-all duration-150 hover:bg-primary-hover active:bg-primary-active disabled:bg-primary-disabled disabled:text-muted disabled:cursor-not-allowed shadow-sm;
   }
 
-  .input-area {
-    @apply w-full rounded-2xl bg-white text-slate-900 placeholder:text-slate-400
-      border border-white/20 px-4 py-3 min-h-[120px] outline-none
-      focus:ring-2 focus:ring-primary/40;
+  /* Zapier Secondary Button (Deep Coffee Ink with Warm White text, 12px rounded-xl) */
+  .btn-zapier-secondary,
+  .btn-binance-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-surface-card-dark border border-hairline-dark px-6 py-2.5 text-sm font-semibold text-on-dark transition-all duration-150 hover:bg-surface-elevated-dark active:bg-surface-elevated-dark disabled:opacity-40 disabled:cursor-not-allowed shadow-sm;
   }
 
-  /* Dark elevated field (matches ui/Input.tsx) */
+  /* Trading Up / Positive Status Button */
+  .btn-trading-up {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg bg-trading-up px-5 py-2 text-xs font-semibold text-white hover:opacity-90 active:opacity-100 disabled:opacity-40 shadow-sm;
+  }
+
+  /* Trading Down / Alert Status Button */
+  .btn-trading-down {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg bg-trading-down px-5 py-2 text-xs font-semibold text-white hover:opacity-90 active:opacity-100 disabled:opacity-40 shadow-sm;
+  }
+
+  /* Card surface */
+  .card-dark {
+    @apply bg-surface-card-dark border border-hairline-dark rounded-xl;
+  }
+
+  /* Elevated surface */
+  .card-elevated {
+    @apply bg-surface-elevated-dark border border-hairline-dark rounded-xl;
+  }
+
+  /* Elevated input field */
   .input-dark {
-    @apply w-full rounded-xl bg-slate-800/90 text-white placeholder:text-slate-400
-      border border-slate-700 px-3.5 py-2.5 outline-none
-      focus:ring-2 focus:ring-primary/50 focus:border-primary;
+    @apply w-full rounded-lg bg-surface-card-dark text-sm text-body placeholder:text-muted border border-hairline-dark px-3.5 py-2.5 outline-none transition-all duration-150 focus:border-primary focus:ring-1 focus:ring-primary;
   }
 }
 
 @layer utilities {
-  /* Tabular Numbers — NON-NEGOTIABLE for all financial data (Design.md §2.2) */
+  /* Tabular Numbers (BinancePlex Voice) */
   .tnum {
     font-feature-settings: 'tnum', 'ss01';
+    font-variant-numeric: tabular-nums;
   }
 
-  /* Risk wash backgrounds */
-  .wash-jade {
-    background-color: rgba(26, 130, 118, 0.15);
+  /* Trading colors */
+  .text-up {
+    color: #0ecb81;
   }
-  .wash-amber {
-    background-color: rgba(217, 119, 6, 0.15);
+  .text-down {
+    color: #f6465d;
   }
-  .wash-terracotta {
-    background-color: rgba(194, 65, 12, 0.15);
+  .bg-up {
+    background-color: #0ecb81;
   }
-  .wash-ruby {
-    background-color: rgba(159, 18, 57, 0.15);
+  .bg-down {
+    background-color: #f6465d;
   }
 
-  /* Ambient aura glow (Design.md §3 — no drop shadows) */
-  .aura-jade {
-    box-shadow: 0 0 40px rgba(26, 130, 118, 0.2);
+  /* Washes */
+  .wash-up {
+    background-color: rgba(14, 203, 129, 0.12);
   }
-  .aura-ruby {
-    box-shadow: 0 0 40px rgba(159, 18, 57, 0.2);
+  .wash-down {
+    background-color: rgba(246, 70, 93, 0.12);
   }
-}
+  .wash-yellow {
+    background-color: rgba(252, 213, 53, 0.12);
+  }
+  .wash-blue {
+    background-color: rgba(59, 130, 246, 0.12);
+  }
+}

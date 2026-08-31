@@ -99,14 +99,14 @@ export const ConfirmPaymentPage: React.FC = () => {
   if (!targetVpa || targetAmount <= 0) {
     return (
       <div className="max-w-md mx-auto px-4 py-16 text-center space-y-4">
-        <AlertCircle className="w-12 h-12 text-accent-yellow mx-auto" />
-        <h2 className="text-xl font-bold text-bone">No Active Payment Session</h2>
-        <p className="text-bone-muted text-sm">
+        <AlertCircle className="w-12 h-12 text-primary mx-auto" />
+        <h2 className="text-xl font-bold text-on-dark font-sans">No Active Payment Session</h2>
+        <p className="text-muted text-sm">
           Please enter the receiver VPA and amount to initiate a payment.
         </p>
         <button
           onClick={() => navigate('/payment/send')}
-          className="px-6 py-2.5 rounded-xl bg-primary text-canvas font-bold text-sm tracking-wide"
+          className="px-6 py-2.5 rounded-md bg-primary text-on-primary font-semibold text-sm tracking-wide shadow-sm hover:bg-primary-hover"
         >
           Start Payment
         </button>
@@ -119,34 +119,34 @@ export const ConfirmPaymentPage: React.FC = () => {
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate('/payment/send')}
-          className="inline-flex items-center gap-1.5 text-bone-muted hover:text-bone text-sm transition-colors"
+          className="inline-flex items-center gap-1.5 text-muted hover:text-on-dark text-sm font-semibold transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Entry
         </button>
-        <div className="text-xs font-mono text-bone-muted tracking-wider uppercase">
+        <div className="text-xs font-mono text-muted tracking-wider uppercase font-semibold">
           Step 2 of 3
         </div>
       </div>
 
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-bone tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold text-on-dark tracking-tight font-sans">
           Confirm Payment
         </h1>
-        <p className="text-bone-muted text-sm mt-1">
+        <p className="text-muted text-xs sm:text-sm mt-1">
           Review receiver and transaction details before security routing.
         </p>
       </div>
 
-      <div className="bg-canvas-card border border-white/10 rounded-2xl p-5 sm:p-6 space-y-6">
-        <div className="text-center py-4 bg-canvas border border-white/5 rounded-xl">
-          <div className="text-xs font-mono text-bone-muted uppercase tracking-wider mb-1">
+      <div className="bg-surface-card-dark border border-hairline-dark rounded-xl p-5 sm:p-6 space-y-6 shadow-xl">
+        <div className="text-center py-4 bg-canvas border border-hairline-dark rounded-lg">
+          <div className="text-xs font-mono text-muted uppercase tracking-wider mb-1 font-semibold">
             Paying Total
           </div>
           <AmountDisplay amount={targetAmount} size="xl" />
         </div>
 
         <div className="space-y-2">
-          <div className="text-[11px] font-mono uppercase font-semibold text-bone-muted tracking-wider">
+          <div className="text-[11px] font-mono uppercase font-semibold text-muted tracking-wider">
             Transfer Destination
           </div>
           <ReceiverCard
@@ -159,51 +159,51 @@ export const ConfirmPaymentPage: React.FC = () => {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase font-mono tracking-wider text-bone-muted mb-2">
+          <label className="block text-xs font-semibold uppercase font-mono tracking-wider text-muted mb-2">
             Payment Note / Remarks (Optional)
           </label>
           <div className="relative">
-            <FileText className="w-4 h-4 text-bone-muted absolute left-3.5 top-3.5" />
+            <FileText className="w-4 h-4 text-muted absolute left-3.5 top-3.5" />
             <input
               type="text"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="e.g. Dinner, Groceries, Rent"
               maxLength={50}
-              className="w-full bg-canvas border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-bone text-sm placeholder:text-bone-muted/40 focus:outline-none focus:border-primary transition-colors"
+              className="w-full bg-canvas border border-hairline-dark rounded-lg pl-10 pr-4 py-2.5 text-on-dark text-sm placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
             />
           </div>
         </div>
 
         {errorMessage && (
-          <div className="p-3 rounded-xl bg-accent-red/10 border border-accent-red/20 text-accent-red text-xs flex items-center gap-2">
+          <div className="p-3 rounded-lg bg-trading-down/10 border border-trading-down/30 text-trading-down text-xs flex items-center gap-2 font-medium">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
 
-        <div className="p-3.5 rounded-xl bg-canvas-elevated border border-white/5 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2 text-bone-muted">
-            <Shield className="w-4 h-4 text-accent-green" />
+        <div className="p-3.5 rounded-lg bg-surface-elevated-dark border border-hairline-dark flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2 text-muted">
+            <Shield className="w-4 h-4 text-trading-up" />
             <span>AI Multi-Vector Shield</span>
           </div>
-          <span className="text-[11px] font-mono text-accent-green font-semibold">ACTIVE</span>
+          <span className="text-[11px] font-mono text-trading-up font-bold">ACTIVE</span>
         </div>
 
         <button
           type="button"
           onClick={handleProceed}
           disabled={initiateMutation.isPending}
-          className="w-full py-4 px-6 rounded-xl bg-primary hover:bg-primary/90 disabled:opacity-40 text-canvas font-bold text-base tracking-wide transition-all shadow-lg flex items-center justify-center gap-2"
+          className="w-full py-3.5 px-6 rounded-md bg-primary hover:bg-primary-hover active:bg-primary-active disabled:opacity-40 text-on-primary font-semibold text-sm tracking-wide transition-all shadow-md flex items-center justify-center gap-2"
         >
           {initiateMutation.isPending ? (
             <>
-              <span className="animate-spin text-canvas">●</span>
+              <span className="animate-spin text-on-primary">●</span>
               <span>Running Risk Evaluation...</span>
             </>
           ) : (
             <>
-              <Lock className="w-4 h-4" />
+              <Lock className="w-4 h-4 stroke-[2.5]" />
               <span>
                 Proceed to Pay ₹{new Intl.NumberFormat('en-IN').format(targetAmount)}
               </span>
@@ -213,4 +213,4 @@ export const ConfirmPaymentPage: React.FC = () => {
       </div>
     </div>
   );
-};
+};

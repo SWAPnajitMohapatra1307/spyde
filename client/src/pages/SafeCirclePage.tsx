@@ -32,11 +32,11 @@ export const SafeCirclePage: React.FC = () => {
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black font-heading text-bone flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold font-sans text-on-dark flex items-center gap-2.5">
             <ShieldCheck className="w-7 h-7 text-primary" />
             Safe Circle
           </h1>
-          <p className="text-xs text-bone-muted mt-1 max-w-xl leading-relaxed">
+          <p className="text-xs text-muted mt-1 max-w-xl leading-relaxed">
             Manage your trusted circle of family, friends, and verified payees. Transactions to Safe
             Circle contacts bypass friction checks while maintaining active anomaly monitoring.
           </p>
@@ -56,34 +56,34 @@ export const SafeCirclePage: React.FC = () => {
 
       {/* Network Stats Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="rounded-2xl border border-canvas-border bg-canvas-card p-4 space-y-1">
-          <span className="text-[11px] font-semibold text-bone-muted uppercase tracking-wider block">
+        <div className="rounded-xl border border-hairline-dark bg-surface-card-dark p-4 space-y-1 shadow-sm">
+          <span className="text-[11px] font-semibold text-muted uppercase tracking-wider font-mono block">
             Circle Network Capacity
           </span>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black font-heading text-bone tnum">
+            <span className="text-2xl font-bold font-mono text-primary tnum">
               {total} / {maxCapacity}
             </span>
-            <span className="text-xs font-semibold text-primary">Active Slots</span>
+            <span className="text-xs font-semibold text-trading-up font-mono">Active Slots</span>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-canvas-border bg-canvas-card p-4 space-y-1">
-          <span className="text-[11px] font-semibold text-bone-muted uppercase tracking-wider block">
+        <div className="rounded-xl border border-hairline-dark bg-surface-card-dark p-4 space-y-1 shadow-sm">
+          <span className="text-[11px] font-semibold text-muted uppercase tracking-wider font-mono block">
             Friction Status
           </span>
-          <span className="text-sm font-bold text-primary block">Step-Up Bypassed</span>
-          <p className="text-[10px] text-bone-muted">Instant PIN routing active</p>
+          <span className="text-sm font-bold text-trading-up block">Step-Up Bypassed</span>
+          <p className="text-[10px] text-muted font-mono">Instant PIN routing active</p>
         </div>
 
-        <div className="rounded-2xl border border-canvas-border bg-canvas-card p-4 space-y-1">
-          <span className="text-[11px] font-semibold text-bone-muted uppercase tracking-wider block">
+        <div className="rounded-xl border border-hairline-dark bg-surface-card-dark p-4 space-y-1 shadow-sm">
+          <span className="text-[11px] font-semibold text-muted uppercase tracking-wider font-mono block">
             Active Anomalies
           </span>
-          <span className="text-sm font-bold text-bone block">
+          <span className="text-sm font-bold text-on-dark block font-mono">
             {contacts.filter((c) => c.hasAnomaly).length} Flagged
           </span>
-          <p className="text-[10px] text-bone-muted">Automated velocity monitor</p>
+          <p className="text-[10px] text-muted font-mono">Automated velocity monitor</p>
         </div>
       </div>
 
@@ -95,9 +95,9 @@ export const SafeCirclePage: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search contact by name or UPI ID..."
-            className="w-full bg-canvas-card border border-canvas-border rounded-xl px-4 py-3 pl-10 text-bone placeholder-bone-muted/40 text-xs focus:outline-none focus:border-primary transition-all"
+            className="w-full bg-surface-card-dark border border-hairline-dark rounded-lg px-4 py-2.5 pl-10 text-on-dark placeholder-muted text-xs focus:outline-none focus:border-primary transition-all"
           />
-          <Search className="w-4 h-4 text-bone-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
         </div>
       )}
 
@@ -107,7 +107,7 @@ export const SafeCirclePage: React.FC = () => {
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="h-36 rounded-2xl bg-canvas-subtle border border-canvas-border animate-pulse"
+              className="h-36 rounded-xl bg-surface-card-dark border border-hairline-dark animate-pulse"
             />
           ))}
         </div>
@@ -115,9 +115,9 @@ export const SafeCirclePage: React.FC = () => {
 
       {/* Error Fallback */}
       {isError && (
-        <div className="rounded-2xl border border-accent-ruby/30 bg-accent-ruby/10 p-6 text-center space-y-3">
-          <AlertCircle className="w-8 h-8 text-accent-ruby mx-auto" />
-          <p className="text-xs font-semibold text-accent-ruby">
+        <div className="rounded-xl border border-trading-down/30 bg-trading-down/10 p-6 text-center space-y-3">
+          <AlertCircle className="w-8 h-8 text-trading-down mx-auto" />
+          <p className="text-xs font-semibold text-trading-down font-medium">
             Failed to load Safe Circle contacts.
           </p>
           <Button
@@ -148,13 +148,13 @@ export const SafeCirclePage: React.FC = () => {
 
       {/* Empty State */}
       {!isLoading && !isError && contacts.length === 0 && (
-        <div className="rounded-2xl border border-canvas-border bg-canvas-card p-10 text-center space-y-4">
-          <div className="w-14 h-14 rounded-full bg-canvas-subtle border border-canvas-border flex items-center justify-center mx-auto text-primary">
+        <div className="rounded-xl border border-hairline-dark bg-surface-card-dark p-10 text-center space-y-4 shadow-sm">
+          <div className="w-14 h-14 rounded-full bg-surface-elevated-dark border border-hairline-dark flex items-center justify-center mx-auto text-primary">
             <Users className="w-7 h-7" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-bone">Your Safe Circle is Empty</h3>
-            <p className="text-xs text-bone-muted max-w-sm mx-auto mt-1">
+            <h3 className="text-base font-bold text-on-dark font-sans">Your Safe Circle is Empty</h3>
+            <p className="text-xs text-muted max-w-sm mx-auto mt-1">
               Add your family members and frequent transfer contacts to streamline future payments.
             </p>
           </div>
@@ -174,4 +174,4 @@ export const SafeCirclePage: React.FC = () => {
       <AddContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
-};
+};
