@@ -1,8 +1,5 @@
-// client/src/hooks/useAdmin.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../lib/apiClient";
-
-// ── Existing Types ───────────────────────────────────────────────────
 
 export interface AdminOverview {
   totalTransactions: number;
@@ -35,14 +32,12 @@ export interface FlaggedVpa {
   reportCount: number;
   riskScore: number;
   blockedAttempts: number;
-  lastFlagged: string; // ISO-8601
+  lastFlagged: string;
 }
 
 export interface AdminTopFlaggedResponse {
   topFlagged: FlaggedVpa[];
 }
-
-// ── Admin Complaints Types ───────────────────────────────────────────
 
 export type ComplaintStatus = "PENDING" | "INVESTIGATING" | "RESOLVED" | "DISMISSED";
 
@@ -70,8 +65,6 @@ export interface UpdateComplaintPayload {
   resolutionNotes?: string;
 }
 
-// ── QR Tamper Logs Types ─────────────────────────────────────────────
-
 export interface TamperLog {
   id: string;
   originalVpa: string;
@@ -89,15 +82,13 @@ export interface AdminTampersResponse {
   total: number;
 }
 
-// ── Network Graph / Fraud Ring Types ─────────────────────────────────
-
 export interface NetworkNode {
   id: string;
   label: string;
   type: "VPA" | "USER" | "DEVICE" | "IP";
   riskScore: number;
   flagged: boolean;
-  totalVolume?: number; // in paisa
+  totalVolume?: number;
 }
 
 export interface NetworkEdge {
@@ -113,16 +104,44 @@ export interface AdminNetworkResponse {
   edges: NetworkEdge[];
 }
 
-// ── Fetchers ─────────────────────────────────────────────────────────
-
 const fetchAdminStats = async (): Promise<AdminStatsResponse> => {
   const res = await apiClient.get<any>("/api/admin/stats");
-  return res.data?.data || res.data;
+  const raw = res.data?.data || res.data || {};
+  return {
+    overview: {
+      totalTransactions: raw.overview?.totalTransactions ?? 0,
+      totalVolume: raw.overview?.totalVolume ?? raw.overview?.totalVolumePaisa ?? 0,
+      successfulTransactions: raw.overview?.successfulTransactions ?? 0,
+      blockedTransactions: raw.overview?.blockedTransactions ?? 0,
+    },
+    riskMetrics: {
+      passRate: raw.riskMetrics?.passRate ?? 0,
+      warnRate: raw.riskMetrics?.warnRate ?? 0,
+      challengeRate: raw.riskMetrics?.challengeRate ?? 0,
+      blockRate: raw.riskMetrics?.blockRate ?? 0,
+    },
+    complaints: {
+      total: raw.complaints?.total ?? raw.complaints?.totalFiled ?? 0,
+      open: raw.complaints?.open ?? raw.complaints?.pendingReview ?? 0,
+      resolved: raw.complaints?.resolved ?? raw.complaints?.verifiedFraud ?? 0,
+    },
+  };
 };
 
 const fetchTopFlagged = async (): Promise<AdminTopFlaggedResponse> => {
   const res = await apiClient.get<any>("/api/admin/top-flagged");
-  return res.data?.data || res.data;
+  const rawList = res.data?.data?.topFlagged || res.data?.topFlagged || [];
+  const topFlagged: FlaggedVpa[] = rawList.map((item: any) => {
+    const rawScore = item.riskScore ?? (item.calculatedRiskScore ? item.calculatedRiskScore / 100 : 0);
+    return {
+      vpa: item.vpa || "unknown@spyde",
+      reportCount: item.reportCount ?? item.complaintCount ?? 0,
+      riskScore: rawScore > 1 ? rawScore / 100 : rawScore,
+      blockedAttempts: item.blockedAttempts ?? 0,
+      lastFlagged: item.lastFlagged || item.lastActive || new Date().toISOString(),
+    };
+  });
+  return { topFlagged };
 };
 
 const fetchAdminComplaints = async (): Promise<AdminComplaintsResponse> => {
@@ -152,8 +171,6 @@ const fetchAdminNetwork = async (): Promise<AdminNetworkResponse> => {
   const res = await apiClient.get<any>("/api/admin/network");
   return res.data?.data || res.data;
 };
-
-// ── Hooks ────────────────────────────────────────────────────────────
 
 export const useAdminStats = () =>
   useQuery<AdminStatsResponse, Error>({

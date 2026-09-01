@@ -1,4 +1,5 @@
 import { prisma } from '../../db/prisma';
+import { redis } from '../../lib/redis'; // ⚡ ADDED REDIS
 import type {
   LivenessChallengeRequest,
   LivenessChallengeResponse,
@@ -23,6 +24,13 @@ export class LivenessService {
    * Retrieves current status and details of a liveness session for polling.
    */
   async getSessionStatus(sessionId: string) {
+    // ⚡ REDIS CACHE CHECK ⚡
+    const cached = await redis.getJson<any>(`liveness:${sessionId}`);
+    if (cached) {
+      return { sessionId, ...cached };
+    }
+
+    // Database fallback
     const session = await prisma.livenessSession.findUnique({
       where: { id: sessionId },
       select: {
@@ -48,14 +56,18 @@ export class LivenessService {
     const isExpired = new Date() > session.expiresAt && session.verdict === 'FAIL';
     const status = isExpired ? 'EXPIRED' : session.verdict === 'PASS' ? 'PASSED' : session.verdict;
 
-    return {
-      sessionId: session.id,
+    const result = {
       status,
       verdict: session.verdict,
       challengeCode: session.challengeCode,
       expiresAt: session.expiresAt.toISOString(),
       transactionId: session.transactionId,
     };
+
+    // ⚡ UPDATE REDIS CACHE ⚡
+    await redis.setJson(`liveness:${sessionId}`, result, 300);
+
+    return { sessionId, ...result };
   }
 
   /**
@@ -77,6 +89,15 @@ export class LivenessService {
         verdict: 'FAIL',
       },
     });
+
+    // ⚡ PRIME REDIS CACHE ⚡
+    await redis.setJson(`liveness:${session.id}`, {
+      status: 'PENDING',
+      verdict: 'FAIL',
+      challengeCode,
+      expiresAt: expiresAt.toISOString(),
+      transactionId: payload.transactionId,
+    }, 180);
 
     console.log(`[INFO] Liveness challenge created. Session: ${session.id}, Expires: ${expiresAt.toISOString()}`);
 
@@ -102,7 +123,6 @@ export class LivenessService {
       where: { id: challengeId },
     });
 
-    // Fallback: create dynamic session with a valid seeded user if missing
     if (!session) {
       const fallbackUser = await prisma.user.findFirst();
       if (!fallbackUser) {
@@ -126,8 +146,6 @@ export class LivenessService {
     const totalScore = clientScore + serverChallengeBonus;
     const isPass = totalScore >= 75;
 
-    // Atomic update: Mark session as PASS. If failed, mark transaction as FAILED.
-    // (If passed, keep transaction PENDING so sender PIN entry executes the bank ledger transfer)
     const [updatedSession] = await prisma.$transaction([
       prisma.livenessSession.update({
         where: { id: session.id },
@@ -143,13 +161,19 @@ export class LivenessService {
         ? [
             prisma.simTransaction.updateMany({
               where: { id: session.transactionId },
-              data: {
-                status: 'FAILED',
-              },
+              data: { status: 'FAILED' },
             }),
           ]
         : []),
     ]);
+
+    // ⚡ UPDATE REDIS CACHE TO NOTIFY POLLING CLIENT IMMEDIATELY ⚡
+    const cached = await redis.getJson<any>(`liveness:${session.id}`) || {};
+    await redis.setJson(`liveness:${session.id}`, {
+      ...cached,
+      status: isPass ? 'PASSED' : 'FAIL',
+      verdict: isPass ? 'PASS' : 'FAIL'
+    }, 300);
 
     console.log(`[ESCROW] Escrow released. Liveness verified for session: ${session.id}`);
 
@@ -157,10 +181,7 @@ export class LivenessService {
       sessionId: updatedSession.id,
       verdict: updatedSession.verdict,
       totalScore,
-      breakdown: {
-        clientScore,
-        serverChallengeBonus,
-      },
+      breakdown: { clientScore, serverChallengeBonus },
       livenessToken: `liv_token_${updatedSession.id}_authorized`,
       message: 'Liveness check passed. Proceed to transaction confirmation.',
     };
@@ -174,18 +195,11 @@ export class LivenessService {
       where: {
         userId,
         verdict: 'FAIL',
-        expiresAt: {
-          gt: new Date(),
-        },
+        expiresAt: { gt: new Date() },
       },
       include: {
         transaction: {
-          select: {
-            id: true,
-            amountPaisa: true,
-            receiverVpa: true,
-            createdAt: true,
-          },
+          select: { id: true, amountPaisa: true, receiverVpa: true, createdAt: true },
         },
       },
     });

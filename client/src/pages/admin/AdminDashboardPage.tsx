@@ -16,17 +16,14 @@ import type {
   AdminComplaintsSummary,
 } from "../../hooks/useAdmin";
 
-// ── Helpers ──────────────────────────────────────────────────────────
-
 const paisaToRupees = (paisa: number = 0): string =>
   `₹${((paisa || 0) / 100).toLocaleString("en-IN", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
 
-const toPercent = (rate: number = 0): string => `${((rate || 0) * 100).toFixed(1)}%`;
-
-// ── Sub-components ───────────────────────────────────────────────────
+const toPercent = (rate: number = 0): string =>
+  `${((rate || 0) * 100).toFixed(1)}%`;
 
 interface StatCardProps {
   label: string;
@@ -41,34 +38,50 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, icon, accent }) => (
       <span className="text-bone-muted text-sm font-medium">{label}</span>
       <span className={`${accent} p-2 rounded-lg bg-white/5`}>{icon}</span>
     </div>
-    <span className="text-bone text-2xl font-semibold tracking-tight">
-      {value}
-    </span>
+    <span className="text-bone text-2xl font-semibold tracking-tight">{value}</span>
   </div>
 );
 
 interface RiskBarProps {
   label: string;
   rate: number;
-  color: string;
+  /** Tailwind bg class, e.g. bg-accent-green */
+  colorClass: string;
+  /** Fallback hex if theme tokens fail */
+  colorHex: string;
 }
 
-const RiskBar: React.FC<RiskBarProps> = ({ label, rate = 0, color }) => (
-  <div className="flex flex-col gap-1.5">
-    <div className="flex items-center justify-between text-sm">
-      <span className="text-bone-muted">{label}</span>
-      <span className="text-bone font-medium">{toPercent(rate)}</span>
-    </div>
-    <div className="h-2 w-full rounded-pill bg-white/5 overflow-hidden">
-      <div
-        className={`h-full rounded-pill ${color}`}
-        style={{ width: `${Math.min((rate || 0) * 100, 100)}%` }}
-      />
-    </div>
-  </div>
-);
+const RiskBar: React.FC<RiskBarProps> = ({
+  label,
+  rate = 0,
+  colorClass,
+  colorHex,
+}) => {
+  // rate is 0–1 from API
+  const pct = Math.min(Math.max((rate || 0) * 100, 0), 100);
 
-// ── Section Renderers ────────────────────────────────────────────────
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-bone-muted font-medium tracking-wide">{label}</span>
+        <span className="text-bone font-semibold tabular-nums">{toPercent(rate)}</span>
+      </div>
+
+      {/* Track */}
+      <div className="relative h-3 w-full rounded-full bg-white/10 overflow-hidden border border-white/5">
+        {/* Fill */}
+        <div
+          className={`absolute left-0 top-0 h-full rounded-full ${colorClass} transition-all duration-700 ease-out`}
+          style={{
+            width: `${pct}%`,
+            backgroundColor: colorHex, // guarantees visible fill even if token missing
+            minWidth: pct > 0 ? "6px" : "0px",
+          }}
+        />
+      </div>
+    </div>
+  );
+};
 
 const OverviewSection: React.FC<{ data?: AdminOverview }> = ({ data }) => (
   <section className="flex flex-col gap-4">
@@ -105,20 +118,38 @@ const OverviewSection: React.FC<{ data?: AdminOverview }> = ({ data }) => (
 const RiskSection: React.FC<{ data?: AdminRiskMetrics }> = ({ data }) => (
   <section className="flex flex-col gap-4">
     <h2 className="text-bone text-lg font-semibold">Risk Distribution</h2>
-    <div className="bg-canvas-card rounded-xl p-5 border border-white/5 flex flex-col gap-4">
-      <RiskBar label="PASS" rate={data?.passRate || 0} color="bg-accent-green" />
-      <RiskBar label="WARN" rate={data?.warnRate || 0} color="bg-accent-yellow" />
+    <div className="bg-canvas-card rounded-xl p-5 border border-white/5 flex flex-col gap-5">
+      <RiskBar
+        label="PASS"
+        rate={data?.passRate || 0}
+        colorClass="bg-emerald-500"
+        colorHex="#10b981"
+      />
+      <RiskBar
+        label="WARN"
+        rate={data?.warnRate || 0}
+        colorClass="bg-yellow-400"
+        colorHex="#facc15"
+      />
       <RiskBar
         label="CHALLENGE"
         rate={data?.challengeRate || 0}
-        color="bg-accent-orange"
+        colorClass="bg-orange-500"
+        colorHex="#f97316"
       />
-      <RiskBar label="BLOCK" rate={data?.blockRate || 0} color="bg-accent-red" />
+      <RiskBar
+        label="BLOCK"
+        rate={data?.blockRate || 0}
+        colorClass="bg-red-500"
+        colorHex="#ef4444"
+      />
     </div>
   </section>
 );
 
-const ComplaintsSection: React.FC<{ data?: AdminComplaintsSummary }> = ({ data }) => (
+const ComplaintsSection: React.FC<{ data?: AdminComplaintsSummary }> = ({
+  data,
+}) => (
   <section className="flex flex-col gap-4">
     <h2 className="text-bone text-lg font-semibold">Complaints</h2>
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -144,8 +175,6 @@ const ComplaintsSection: React.FC<{ data?: AdminComplaintsSummary }> = ({ data }
   </section>
 );
 
-// ── Page ─────────────────────────────────────────────────────────────
-
 export const AdminDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { data, isLoading, isError, error } = useAdminStats();
@@ -170,7 +199,6 @@ export const AdminDashboardPage: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-8 px-4 py-6 max-w-6xl mx-auto">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-bone text-2xl font-bold">Admin Console</h1>
@@ -189,7 +217,6 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Sections */}
       <OverviewSection data={data?.overview} />
       <RiskSection data={data?.riskMetrics} />
       <ComplaintsSection data={data?.complaints} />

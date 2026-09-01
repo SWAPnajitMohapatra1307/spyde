@@ -13,6 +13,8 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    host: true,
+    allowedHosts: true, // ⚡ Allows Cloudflare tunnels, LAN IPs, and external hosts
     proxy: {
       // 🔄 Forward all /api calls from Vite (5173) -> Express Backend (5000)
       '/api': {
