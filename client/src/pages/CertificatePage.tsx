@@ -24,19 +24,20 @@ export const CertificatePage: React.FC = () => {
   const { id = 'demo-cert' } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [copiedHash, setCopiedHash] = useState<boolean>(false);
-  const [copiedSig, setCopiedSig] = useState<boolean>(false);
-  const [isVerifying, setIsVerifying] = useState<boolean>(false);
-  const [isVerifiedLocally, setIsVerifiedLocally] = useState<boolean>(true);
+  const [copiedHash, setCopiedHash] = useState(false);
+  const [copiedSig, setCopiedSig] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isVerifiedLocally, setIsVerifiedLocally] = useState(true);
 
-  // View-Once Face Blob State
-  const [showFace, setShowFace] = useState<boolean>(false);
-  const [countdown, setCountdown] = useState<number>(10);
-  const [faceDestroyed, setFaceDestroyed] = useState<boolean>(false);
-  const [faceLoading, setFaceLoading] = useState<boolean>(false);
+  const [showFace, setShowFace] = useState(false);
+  const [countdown, setCountdown] = useState(10);
+  const [faceDestroyed, setFaceDestroyed] = useState(false);
+  const [faceLoading, setFaceLoading] = useState(false);
 
   const { data: cert, isLoading } = useCertificate(id);
-  const { data: faceBlobRes, refetch: fetchFaceBlob } = useFaceBlob(cert?.faceBlobId || id);
+  const { data: faceBlobRes, refetch: fetchFaceBlob } = useFaceBlob(
+    cert?.faceBlobId || id
+  );
 
   const handleCopy = (text: string, type: 'hash' | 'sig') => {
     void navigator.clipboard.writeText(text);
@@ -86,7 +87,7 @@ export const CertificatePage: React.FC = () => {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-pill animate-spin mx-auto" />
+          <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
           <div className="text-xs font-mono text-muted">Decoding Cryptographic Seal...</div>
         </div>
       </div>
@@ -100,19 +101,32 @@ export const CertificatePage: React.FC = () => {
     (payload.amountPaisa ? Number(payload.amountPaisa) / 100 : cert.amountRupees ?? 0);
   const senderVpa = payload.senderVpa ?? cert.senderVpa ?? 'unknown@spyde';
   const receiverVpa = payload.receiverVpa ?? cert.receiverVpa ?? 'unknown@spyde';
-  const receiverName = payload.receiverLegalName ?? payload.receiverName ?? 'External Payee';
-  const riskVerdict = payload.riskVerdict ?? cert.riskVerdict ?? 'PASS';
+  const receiverName =
+    payload.receiverLegalName ??
+    payload.receiverName ??
+    (cert as any).receiverName ??
+    'External Payee';
+  const riskVerdict =
+    payload.riskVerdict ?? cert.riskVerdict ?? (cert as any).verdict ?? 'PASS';
   const riskScore = payload.riskScore ?? cert.riskScore ?? 0;
-  const timestamp = payload.timestamp ?? (cert as any).settledAt ?? (cert as any).issuedAt ?? new Date().toISOString();
-  const geohash = payload.geohash ?? 'tdr1y1e (Location Hidden)';
-  const deviceAttestation = payload.deviceAttestation ?? 'Verified Hardware';
-  const merkleRoot = payload.merkleRoot ?? 'N/A';
-  const algorithm = payload.algorithm ?? 'Ed25519-SHA512 (RFC 8032)';
+  const timestamp =
+    payload.timestamp ??
+    (cert as any).settledAt ??
+    (cert as any).issuedAt ??
+    new Date().toISOString();
+  const geohash = payload.geohash ?? (cert as any).geohash ?? 'tdr1y1e (Location Hidden)';
+  const deviceAttestation =
+    payload.deviceAttestation ?? (cert as any).deviceAttestation ?? 'Verified Hardware';
+  const merkleRoot = payload.merkleRoot ?? (cert as any).merkleRoot ?? 'N/A';
+  const algorithm =
+    payload.algorithm ?? (cert as any).algorithm ?? 'Ed25519-SHA512 (RFC 8032)';
   const publicKey =
     payload.publicKey ??
+    (cert as any).publicKey ??
     'ed25519:9f8e7d6c5b4a392817263544abcfef0123456789abcdef0123456789abcdef01';
   const payloadHash = cert.payloadHash ?? 'no-hash-available';
-  const signature = cert.jwtSignature ?? 'no-signature-available';
+  const signature =
+    cert.jwtSignature ?? (cert as any).signature ?? 'no-signature-available';
   const hasFaceBlob = Boolean(cert.faceBlobId || (cert as any).hasViewOnceFace);
 
   const rawFaceRes = faceBlobRes as any;
@@ -121,7 +135,7 @@ export const CertificatePage: React.FC = () => {
     rawFaceRes?.blob ||
     rawFaceRes?.dataUrl ||
     (cert as any)?.faceBlobUrl ||
-    "https://i.pravatar.cc/300?img=11";
+    'https://i.pravatar.cc/300?img=11';
 
   const formattedAmount = new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -131,12 +145,12 @@ export const CertificatePage: React.FC = () => {
 
   const verdictColor =
     riskVerdict === 'PASS'
-      ? 'text-accent-green'
+      ? 'text-trading-up'
       : riskVerdict === 'WARN'
-      ? 'text-yellow-400'
-      : riskVerdict === 'CHALLENGE'
-      ? 'text-orange-400'
-      : 'text-red-400';
+        ? 'text-yellow-400'
+        : riskVerdict === 'CHALLENGE'
+          ? 'text-orange-400'
+          : 'text-trading-down';
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-canvas py-6 px-4 max-w-3xl mx-auto space-y-6 print:bg-white print:text-black print:p-0">
@@ -156,7 +170,7 @@ export const CertificatePage: React.FC = () => {
             <Printer className="w-4 h-4 text-muted" /> Print
           </button>
           <Link
-            to={`/verify/${cert.id}`}
+            to={`/verify/${certId}`}
             className="px-3 py-2 rounded-xl bg-primary hover:bg-primary/90 text-canvas text-xs font-bold inline-flex items-center gap-1.5 transition-colors shadow"
           >
             <Share2 className="w-3.5 h-3.5" /> Public Verifier
@@ -164,14 +178,11 @@ export const CertificatePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Certificate Document Sheet */}
-      <div className="bg-canvas-card border border-white/15 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden print:border print:border-black print:shadow-none print:bg-white">
-        {/* Holographic Watermark Glow */}
-        <div className="pointer-events-none absolute -top-24 -right-24 w-96 h-96 bg-primary/10 rounded-pill blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-24 w-96 h-96 bg-accent-green/10 rounded-pill blur-3xl" />
+      <div className="bg-surface-card-dark border border-hairline-dark rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden print:border print:border-black print:shadow-none print:bg-white">
+        <div className="pointer-events-none absolute -top-24 -right-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -left-24 w-96 h-96 bg-trading-up/10 rounded-full blur-3xl" />
 
-        {/* Certificate Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-white/10 print:border-black/20">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-hairline-dark print:border-black/20">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-lg bg-surface-elevated-dark border border-hairline-dark flex items-center justify-center text-primary">
               <FileCheck2 className="w-6 h-6" />
@@ -190,26 +201,21 @@ export const CertificatePage: React.FC = () => {
             <span className="text-[10px] font-mono uppercase text-muted tracking-wider block font-semibold">
               Certificate UID
             </span>
-            <span className="font-mono text-xs font-bold text-bone select-all">
-              {cert.id}
-            </span>
+            <span className="font-mono text-xs font-bold text-on-dark select-all">{certId}</span>
           </div>
         </div>
 
-        {/* Status Seal Bar */}
-        <div className="my-6 p-4 rounded-2xl bg-canvas border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:bg-transparent print:border-black/20">
+        <div className="my-6 p-4 rounded-2xl bg-canvas border border-hairline-dark flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:bg-transparent print:border-black/20">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-accent-green/15 text-accent-green">
+            <div className={`p-2 rounded-xl bg-white/5 ${verdictColor}`}>
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold text-accent-green">
-                  RISK ASSESSMENT: {cert.verdict}
+                <span className={`text-xs font-mono font-bold ${verdictColor}`}>
+                  RISK ASSESSMENT: {riskVerdict}
                 </span>
-                <span className="text-[11px] font-mono text-bone-muted">
-                  (Score: {cert.riskScore}/100)
-                </span>
+                <span className="text-[11px] font-mono text-muted">(Score: {riskScore}/100)</span>
               </div>
               <div className="text-xs text-muted font-mono mt-0.5">
                 Mathematically proven authentic at point of transaction.
@@ -239,7 +245,7 @@ export const CertificatePage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Eye className="w-5 h-5 text-primary" />
-                <span className="text-sm font-bold text-bone">Receiver Biometric Proof</span>
+                <span className="text-sm font-bold text-on-dark">Receiver Biometric Proof</span>
               </div>
               {showFace && (
                 <span className="text-xs font-mono font-bold text-red-400 animate-pulse">
@@ -251,7 +257,8 @@ export const CertificatePage: React.FC = () => {
             {!showFace && !faceDestroyed && (
               <div className="text-center p-6 bg-slate-900/50 rounded-xl border border-white/5 space-y-3">
                 <p className="text-xs text-slate-400">
-                  Receiver consented to share a 10-second view-once face capture during liveness verification.
+                  Receiver consented to share a 10-second view-once face capture during liveness
+                  verification.
                 </p>
                 <button
                   onClick={handleRevealFace}
@@ -273,10 +280,9 @@ export const CertificatePage: React.FC = () => {
                     onContextMenu={(e) => e.preventDefault()}
                     draggable={false}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent animate-pulse pointer-events-none" />
                 </div>
                 <p className="text-[10px] font-mono text-red-400/80 text-center max-w-xs">
-                  DPDP: This image will be permanently purged in {countdown} seconds. No re-viewing possible.
+                  DPDP: This image will be permanently purged in {countdown} seconds.
                 </p>
               </div>
             )}
@@ -293,10 +299,12 @@ export const CertificatePage: React.FC = () => {
         )}
 
         {!hasFaceBlob && riskVerdict === 'CHALLENGE' && (
-          <div className="my-6 p-4 rounded-2xl border border-white/10 bg-slate-900/50 flex items-center gap-3 print:hidden">
+          <div className="my-6 p-4 rounded-2xl border border-hairline-dark bg-slate-900/50 flex items-center gap-3 print:hidden">
             <UserX className="w-5 h-5 text-slate-400" />
             <div>
-              <p className="text-xs font-semibold text-bone">Receiver declined to share face proof</p>
+              <p className="text-xs font-semibold text-on-dark">
+                Receiver declined to share face proof
+              </p>
               <p className="text-[11px] text-slate-500">
                 Liveness verified without biometric snapshot capture.
               </p>
@@ -313,17 +321,17 @@ export const CertificatePage: React.FC = () => {
               <span className="text-muted">Amount</span>
               <span className="text-on-dark font-bold text-sm tnum">{formattedAmount}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-bone-muted">Sender VPA</span>
-              <span className="text-bone select-all">{cert.senderVpa}</span>
+            <div className="flex justify-between gap-2">
+              <span className="text-muted shrink-0">Sender VPA</span>
+              <span className="text-on-dark select-all truncate">{senderVpa}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-bone-muted">Receiver VPA</span>
-              <span className="text-bone select-all">{cert.receiverVpa}</span>
+            <div className="flex justify-between gap-2">
+              <span className="text-muted shrink-0">Receiver VPA</span>
+              <span className="text-on-dark select-all truncate">{receiverVpa}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-bone-muted">Receiver Legal Name</span>
-              <span className="text-bone font-sans font-medium">{cert.receiverName}</span>
+            <div className="flex justify-between gap-2">
+              <span className="text-muted shrink-0">Receiver Name</span>
+              <span className="text-on-dark font-sans font-medium truncate">{receiverName}</span>
             </div>
           </div>
 
@@ -331,40 +339,39 @@ export const CertificatePage: React.FC = () => {
             <div className="text-muted uppercase text-[10px] tracking-wider font-semibold flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-primary" /> Temporal & Hardware Audit
             </div>
-            <div className="flex justify-between">
-              <span className="text-bone-muted">Timestamp</span>
-              <span className="text-bone tnum">{new Date(cert.issuedAt).toUTCString()}</span>
+            <div className="flex justify-between gap-2">
+              <span className="text-muted shrink-0">Timestamp</span>
+              <span className="text-on-dark tnum truncate">
+                {new Date(timestamp).toLocaleString('en-IN')}
+              </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-bone-muted">Geohash Anchor</span>
-              <span className="text-bone">{cert.geohash}</span>
+            <div className="flex justify-between gap-2">
+              <span className="text-muted shrink-0">Geohash Anchor</span>
+              <span className="text-on-dark truncate">{geohash}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-bone-muted">Device Attestation</span>
-              <span className="text-bone truncate max-w-[170px]">{cert.deviceAttestation}</span>
+            <div className="flex justify-between gap-2">
+              <span className="text-muted shrink-0">Device Attestation</span>
+              <span className="text-on-dark truncate max-w-[170px]">{deviceAttestation}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-bone-muted">Merkle Root</span>
-              <span className="text-bone truncate max-w-[170px] select-all">{cert.merkleRoot}</span>
+            <div className="flex justify-between gap-2">
+              <span className="text-muted shrink-0">Merkle Root</span>
+              <span className="text-on-dark truncate max-w-[170px] select-all">{merkleRoot}</span>
             </div>
           </div>
         </div>
 
-        {/* Cryptographic Proof Block */}
-        <div className="mt-4 p-5 rounded-2xl bg-canvas border border-white/10 space-y-3.5">
+        <div className="mt-4 p-5 rounded-2xl bg-canvas border border-hairline-dark space-y-3.5">
           <div className="flex items-center justify-between">
             <div className="text-xs font-mono uppercase text-on-dark font-bold tracking-wider flex items-center gap-2">
               <Key className="w-4 h-4 text-primary" /> Digital Signature Envelope
             </div>
-            <span className="text-[11px] font-mono text-bone-muted">
-              {cert.algorithm}
-            </span>
+            <span className="text-[11px] font-mono text-muted">{algorithm}</span>
           </div>
 
           <div className="space-y-1">
-            <div className="text-[10px] uppercase font-mono text-bone-muted">SPYDE Issuer Public Key</div>
-            <div className="p-2 rounded-xl bg-canvas-card border border-white/5 text-[11px] font-mono text-bone-muted select-all break-all">
-              {cert.publicKey}
+            <div className="text-[10px] uppercase font-mono text-muted">SPYDE Issuer Public Key</div>
+            <div className="p-2 rounded-xl bg-surface-card-dark border border-hairline-dark text-[11px] font-mono text-muted select-all break-all">
+              {publicKey}
             </div>
           </div>
 
@@ -373,16 +380,20 @@ export const CertificatePage: React.FC = () => {
               <span>SHA-256 Telemetry Hash</span>
               <button
                 type="button"
-                onClick={() => handleCopy(cert.payloadHash, 'hash')}
-                className="hover:text-bone flex items-center gap-1 transition-colors"
+                onClick={() => handleCopy(payloadHash, 'hash')}
+                className="hover:text-on-dark flex items-center gap-1 transition-colors"
               >
-                {copiedHash ? <Check className="w-3 h-3 text-trading-up" /> : <Copy className="w-3 h-3" />}
+                {copiedHash ? (
+                  <Check className="w-3 h-3 text-trading-up" />
+                ) : (
+                  <Copy className="w-3 h-3" />
+                )}
                 {copiedHash ? 'Copied' : 'Copy'}
               </button>
             </div>
-            <div className="p-2 rounded-xl bg-canvas-card border border-white/5 text-[11px] font-mono text-bone select-all break-all flex items-center justify-between">
-              <span className="truncate">{cert.payloadHash}</span>
-              <Hash className="w-3.5 h-3.5 text-bone-muted flex-shrink-0 ml-2" />
+            <div className="p-2 rounded-xl bg-surface-card-dark border border-hairline-dark text-[11px] font-mono text-on-dark select-all break-all flex items-center justify-between">
+              <span className="truncate">{payloadHash}</span>
+              <Hash className="w-3.5 h-3.5 text-muted flex-shrink-0 ml-2" />
             </div>
           </div>
 
@@ -391,21 +402,24 @@ export const CertificatePage: React.FC = () => {
               <span>Ed25519 Detached Signature</span>
               <button
                 type="button"
-                onClick={() => handleCopy(cert.signature, 'sig')}
-                className="hover:text-bone flex items-center gap-1 transition-colors"
+                onClick={() => handleCopy(signature, 'sig')}
+                className="hover:text-on-dark flex items-center gap-1 transition-colors"
               >
-                {copiedSig ? <Check className="w-3 h-3 text-trading-up" /> : <Copy className="w-3 h-3" />}
+                {copiedSig ? (
+                  <Check className="w-3 h-3 text-trading-up" />
+                ) : (
+                  <Copy className="w-3 h-3" />
+                )}
                 {copiedSig ? 'Copied' : 'Copy'}
               </button>
             </div>
-            <div className="p-2 rounded-xl bg-canvas-card border border-white/5 text-[10px] font-mono text-bone-muted select-all break-all leading-relaxed max-h-20 overflow-y-auto">
-              {cert.signature}
+            <div className="p-2 rounded-xl bg-surface-card-dark border border-hairline-dark text-[10px] font-mono text-muted select-all break-all leading-relaxed max-h-20 overflow-y-auto">
+              {signature}
             </div>
           </div>
         </div>
 
-        {/* Footer Audit Seal */}
-        <div className="mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-bone-muted">
+        <div className="mt-8 pt-6 border-t border-hairline-dark flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted">
           <div className="flex items-center gap-2">
             <Lock className="w-4 h-4 text-primary" />
             <span>Immutable Node Anchor #{certId.slice(-6).toUpperCase()}</span>

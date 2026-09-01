@@ -12,15 +12,14 @@ import {
 import { useTopFlagged } from "../../hooks/useAdmin";
 import type { FlaggedVpa } from "../../hooks/useAdmin";
 
-/** riskScore from API is 0–1 */
 const formatRiskScore = (score: number = 0): string =>
   `${Math.round((score || 0) * 100)}`;
 
-const riskColor = (score: number = 0): string => {
-  if (score >= 0.8) return "bg-accent-red";
-  if (score >= 0.6) return "bg-accent-orange";
-  if (score >= 0.3) return "bg-accent-yellow";
-  return "bg-accent-green";
+const riskHex = (score: number = 0): string => {
+  if (score >= 0.8) return "#ef4444";
+  if (score >= 0.6) return "#f97316";
+  if (score >= 0.3) return "#facc15";
+  return "#10b981";
 };
 
 const riskLabel = (score: number = 0): string => {
@@ -31,10 +30,10 @@ const riskLabel = (score: number = 0): string => {
 };
 
 const riskTextColor = (score: number = 0): string => {
-  if (score >= 0.8) return "text-accent-red";
-  if (score >= 0.6) return "text-accent-orange";
-  if (score >= 0.3) return "text-accent-yellow";
-  return "text-accent-green";
+  if (score >= 0.8) return "text-red-400";
+  if (score >= 0.6) return "text-orange-400";
+  if (score >= 0.3) return "text-yellow-400";
+  return "text-emerald-400";
 };
 
 const formatDate = (iso?: string): string => {
@@ -64,39 +63,41 @@ const FlaggedRow: React.FC<FlaggedRowProps> = ({ entry, rank }) => {
   const pct = Math.min(Math.max(risk * 100, 0), 100);
 
   return (
-    <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-      <td className="py-3 px-4 text-bone-muted text-sm font-mono">
-        #{rank}
-      </td>
-      <td className="py-3 px-4 text-bone font-medium text-sm font-mono">
-        {entry.vpa}
-      </td>
+    <tr className="border-b border-hairline-dark hover:bg-white/[0.02] transition-colors">
+      <td className="py-3 px-4 text-muted text-sm font-mono">#{rank}</td>
+      <td className="py-3 px-4 text-on-dark font-medium text-sm font-mono">{entry.vpa}</td>
       <td className="py-3 px-4 text-center">
         <span className="text-on-dark text-xs font-mono font-semibold tnum">
           {entry.reportCount ?? 0}
         </span>
       </td>
       <td className="py-3 px-4">
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-16 rounded-pill bg-white/5 overflow-hidden">
+        <div className="flex items-center gap-3 min-w-[140px]">
+          <div className="relative h-2.5 w-28 rounded-full bg-white/10 overflow-hidden border border-white/5">
             <div
-              className={`h-full rounded-pill ${riskColor(risk)}`}
-              style={{ width: `${Math.min(risk * 100, 100)}%` }}
+              className="absolute left-0 top-0 h-full rounded-full transition-all duration-700 ease-out"
+              style={{
+                width: `${pct}%`,
+                backgroundColor: riskHex(risk),
+                minWidth: pct > 0 ? "4px" : "0px",
+              }}
             />
           </div>
-          <span className={`text-xs font-semibold ${riskTextColor(risk)}`}>
+          <span className={`text-xs font-bold tabular-nums ${riskTextColor(risk)}`}>
             {formatRiskScore(risk)}
           </span>
         </div>
       </td>
       <td className="py-3 px-4 text-center">
         <span
-          className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-pill ${
+          className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
             risk >= 0.8
-              ? "bg-accent-red/15 text-accent-red"
+              ? "bg-red-500/15 text-red-400"
               : risk >= 0.6
-                ? "bg-accent-orange/15 text-accent-orange"
-                : "bg-accent-yellow/15 text-accent-yellow"
+                ? "bg-orange-500/15 text-orange-400"
+                : risk >= 0.3
+                  ? "bg-yellow-500/15 text-yellow-400"
+                  : "bg-emerald-500/15 text-emerald-400"
           }`}
         >
           {riskLabel(risk)}
@@ -156,17 +157,15 @@ export const AdminTopFlaggedPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-canvas-card rounded-xl p-4 border border-white/5 flex items-center gap-3">
-          <Flag size={18} className="text-accent-red" />
+        <div className="bg-surface-card-dark rounded-xl p-4 border border-hairline-dark flex items-center gap-3 shadow-sm">
+          <Flag size={18} className="text-red-400" />
           <div>
-            <p className="text-bone-muted text-xs">Total Flagged</p>
-            <p className="text-bone text-lg font-semibold">
-              {entries.length}
-            </p>
+            <p className="text-muted text-xs font-mono font-semibold uppercase">Total Flagged</p>
+            <p className="text-on-dark text-lg font-bold font-mono tnum">{entries.length}</p>
           </div>
         </div>
-        <div className="bg-canvas-card rounded-xl p-4 border border-white/5 flex items-center gap-3">
-          <ShieldAlert size={18} className="text-accent-orange" />
+        <div className="bg-surface-card-dark rounded-xl p-4 border border-hairline-dark flex items-center gap-3 shadow-sm">
+          <ShieldAlert size={18} className="text-orange-400" />
           <div>
             <p className="text-muted text-xs font-mono font-semibold uppercase">Critical (≥ 80)</p>
             <p className="text-on-dark text-lg font-bold font-mono tnum">
@@ -177,7 +176,9 @@ export const AdminTopFlaggedPage: React.FC = () => {
         <div className="bg-surface-card-dark rounded-xl p-4 border border-hairline-dark flex items-center gap-3 shadow-sm">
           <Calendar size={18} className="text-primary" />
           <div>
-            <p className="text-muted text-xs font-mono font-semibold uppercase">Total Blocked Attempts</p>
+            <p className="text-muted text-xs font-mono font-semibold uppercase">
+              Total Blocked Attempts
+            </p>
             <p className="text-on-dark text-lg font-bold font-mono tnum">
               {entries
                 .reduce((sum, e) => sum + (e.blockedAttempts ?? 0), 0)
@@ -188,10 +189,10 @@ export const AdminTopFlaggedPage: React.FC = () => {
       </div>
 
       {entries.length === 0 ? (
-        <div className="bg-canvas-card rounded-xl p-12 border border-white/5 text-center">
-          <ShieldAlert size={32} className="text-accent-green mx-auto mb-3" />
-          <p className="text-bone font-medium">No flagged VPAs</p>
-          <p className="text-bone-muted text-sm mt-1">
+        <div className="bg-surface-card-dark rounded-xl p-12 border border-hairline-dark text-center shadow-sm">
+          <ShieldAlert size={32} className="text-emerald-400 mx-auto mb-3" />
+          <p className="text-on-dark font-medium">No flagged VPAs</p>
+          <p className="text-muted text-sm mt-1">
             All clear — no addresses have crossed the risk threshold.
           </p>
         </div>
@@ -225,11 +226,7 @@ export const AdminTopFlaggedPage: React.FC = () => {
             </thead>
             <tbody>
               {entries.map((entry, idx) => (
-                <FlaggedRow
-                  key={entry.vpa || idx}
-                  entry={entry}
-                  rank={idx + 1}
-                />
+                <FlaggedRow key={entry.vpa || idx} entry={entry} rank={idx + 1} />
               ))}
             </tbody>
           </table>

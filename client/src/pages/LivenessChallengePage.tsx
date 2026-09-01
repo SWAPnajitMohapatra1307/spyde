@@ -74,7 +74,12 @@ export const LivenessChallengePage: React.FC = () => {
       setFaceDetection(
         true,
         { x: 100, y: 100, width: 200, height: 200, confidence: 0.98 },
-        { quality: 'good', brightness: 80, sharpness: 80, faceAngle: 0 } as unknown as FaceQualityMetrics
+        {
+          quality: 'good',
+          brightness: 80,
+          sharpness: 80,
+          faceAngle: 0,
+        } as unknown as FaceQualityMetrics
       );
     }, 800);
 
@@ -104,9 +109,7 @@ export const LivenessChallengePage: React.FC = () => {
 
   const handleAllChallengesComplete = () => {
     const frame = captureFaceFrame();
-    if (frame) {
-      setCapturedFaceFrame(frame);
-    }
+    if (frame) setCapturedFaceFrame(frame);
     stop();
     setStep('CONSENT');
     setStepProgress(70);
@@ -127,7 +130,7 @@ export const LivenessChallengePage: React.FC = () => {
             imageData: capturedFaceFrame,
           });
         } catch {
-          // Fallback if backend face blob endpoint differs
+          // optional endpoint shape may differ
         }
       }
 
@@ -141,7 +144,7 @@ export const LivenessChallengePage: React.FC = () => {
           challengeCode = statusRes.data.data.challengeCode;
         }
       } catch {
-        // Fallback OK
+        // demo fallback
       }
 
       await apiClient.post('/api/liveness/verify', {
@@ -151,7 +154,8 @@ export const LivenessChallengePage: React.FC = () => {
         blinkCount: 2,
         faceEmbeddingHash: didConsent
           ? 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
-          : 'no_consent_' + 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'.slice(0, 55),
+          : 'no_consent_' +
+            'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'.slice(0, 55),
       });
 
       setStep('SUCCESS');
@@ -175,47 +179,50 @@ export const LivenessChallengePage: React.FC = () => {
     await start();
   };
 
+  const showCamera =
+    step === 'INITIALIZING' || step === 'CHALLENGE' || step === 'PROCESSING';
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between p-4 max-w-md mx-auto">
-      {/* Top Bar */}
       <div className="text-center space-y-1 py-3">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill bg-primary/10 border border-primary/20 text-primary text-xs font-mono font-semibold">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-mono font-semibold">
           <ShieldCheck className="w-4 h-4" />
           <span>SPYDE Biometric Escrow Release</span>
         </div>
         <h1 className="text-lg font-bold text-on-dark font-sans">Face Liveness Verification</h1>
       </div>
 
-      {/* Camera Preview Viewport */}
-      <div className="relative w-[270px] h-[280px] mx-auto rounded-full overflow-hidden border-4 border-orange-500/40 shadow-2xl bg-slate-900 flex items-center justify-center my-2">
-        <video
-          ref={videoRef}
-          playsInline
-          muted
-          className="w-full h-full object-cover -scale-x-100"
-        />
-        <canvas ref={canvasRef} className="hidden" />
+      {showCamera && (
+        <div className="relative w-[270px] h-[280px] mx-auto rounded-full overflow-hidden border-4 border-orange-500/40 shadow-2xl bg-slate-900 flex items-center justify-center my-2">
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            className="w-full h-full object-cover -scale-x-100"
+          />
+          <canvas ref={canvasRef} className="hidden" />
 
-        {!isActive && step !== 'SUCCESS' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 text-center p-4 space-y-3">
-            <Camera className="w-10 h-10 text-slate-500 animate-pulse" />
-            <p className="text-xs text-slate-400">Initializing camera feed...</p>
-          </div>
-        )}
+          {!isActive && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 text-center p-4 space-y-3">
+              <Camera className="w-10 h-10 text-slate-500 animate-pulse" />
+              <p className="text-xs text-slate-400">Initializing camera feed...</p>
+            </div>
+          )}
 
-        {error && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-950/90 text-center p-4 space-y-2 z-10">
-            <AlertTriangle className="w-8 h-8 text-red-400" />
-            <p className="text-xs text-slate-200 font-semibold">{error.message}</p>
-            <button
-              onClick={handleRestart}
-              className="mt-2 px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg"
-            >
-              Retry Camera
-            </button>
-          </div>
-        )}
-      </div>
+          {error && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-950/90 text-center p-4 space-y-2 z-10">
+              <AlertTriangle className="w-8 h-8 text-red-400" />
+              <p className="text-xs text-slate-200 font-semibold">{error.message}</p>
+              <button
+                onClick={handleRestart}
+                className="mt-2 px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg"
+              >
+                Retry Camera
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="my-2">
         {step === 'CHALLENGE' && isActive && (
@@ -234,12 +241,15 @@ export const LivenessChallengePage: React.FC = () => {
                 <h2 className="text-white font-bold text-sm">Optional: Share Biometric Proof</h2>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed">
-                You can share a one-time view of your face with the sender to boost transaction trust.
+                You can share a one-time view of your face with the sender to boost transaction
+                trust.
               </p>
               <ul className="text-[11px] text-slate-500 space-y-1.5 pl-1">
                 <li className="flex items-start gap-2">
                   <span className="text-emerald-400">✓</span>
-                  <span>Sender views it <strong>ONCE</strong> for exactly 10 seconds</span>
+                  <span>
+                    Sender views it <strong>ONCE</strong> for exactly 10 seconds
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-emerald-400">✓</span>
@@ -276,7 +286,11 @@ export const LivenessChallengePage: React.FC = () => {
         {step === 'PROCESSING' && (
           <div className="text-center space-y-2 py-4">
             <RefreshCw className="w-8 h-8 text-orange-500 animate-spin mx-auto" />
-            <p className="text-xs font-mono text-orange-400 font-bold">Computing ZK Vector Proof...</p>
+            <p className="text-xs font-mono text-orange-400 font-bold">
+              {consentGiven
+                ? 'Encrypting face blob & computing ZK proof...'
+                : 'Computing ZK Vector Proof...'}
+            </p>
           </div>
         )}
 
@@ -286,7 +300,9 @@ export const LivenessChallengePage: React.FC = () => {
               <CheckCircle2 className="w-5 h-5" /> Biometric Verification Complete
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Escrow funds have been successfully unlocked for transfer.
+              {consentGiven
+                ? 'Face proof encrypted & escrow released. Sender can view once for 10s.'
+                : 'Escrow released. No face proof shared with sender.'}
             </p>
             <button
               onClick={() => navigate('/')}
