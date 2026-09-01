@@ -115,29 +115,29 @@ export const VpaEntryPage: React.FC = () => {
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate('/home')}
-          className="inline-flex items-center gap-1.5 text-bone-muted hover:text-bone text-sm transition-colors"
+          className="inline-flex items-center gap-1.5 text-muted hover:text-on-dark text-sm font-semibold transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Cancel
         </button>
-        <div className="text-xs font-mono text-bone-muted tracking-wider uppercase">
+        <div className="text-xs font-mono text-muted tracking-wider uppercase font-semibold">
           Step 1 of 3
         </div>
       </div>
 
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-bone tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold text-on-dark tracking-tight font-sans">
           Send Money via UPI
         </h1>
-        <p className="text-bone-muted text-sm mt-1">
+        <p className="text-muted text-xs sm:text-sm mt-1">
           Real-time AI telemetry verification protects every transaction.
         </p>
       </div>
 
-      <div className="bg-canvas-card border border-white/10 rounded-2xl p-5 sm:p-6 space-y-5">
+      <div className="bg-surface-card-dark border border-hairline-dark rounded-xl p-5 sm:p-6 space-y-5 shadow-xl">
         <form onSubmit={handleVerify} className="space-y-4">
           {/* VPA Input */}
           <div>
-            <label className="block text-xs font-semibold uppercase font-mono tracking-wider text-bone-muted mb-2">
+            <label className="block text-xs font-semibold uppercase font-mono tracking-wider text-muted mb-2">
               Receiver UPI ID / VPA
             </label>
             <div className="relative">
@@ -146,14 +146,14 @@ export const VpaEntryPage: React.FC = () => {
                 value={vpa}
                 onChange={handleVpaChange}
                 placeholder="receiver@okhdfcbank"
-                className="w-full bg-canvas border border-white/10 rounded-xl px-4 py-3 text-bone font-mono text-sm placeholder:text-bone-muted/40 focus:outline-none focus:border-primary transition-colors"
+                className="w-full bg-canvas border border-hairline-dark rounded-lg px-4 py-3 text-on-dark font-mono text-sm placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
                 autoComplete="off"
                 spellCheck={false}
               />
               <button
                 type="submit"
                 disabled={resolveMutation.isPending || !vpa.includes('@')}
-                className="absolute right-2 top-2 bottom-2 px-3.5 bg-canvas-elevated hover:bg-white/10 disabled:opacity-40 border border-white/10 text-bone text-xs font-medium rounded-lg inline-flex items-center gap-1.5 transition-colors"
+                className="absolute right-2 top-2 bottom-2 px-3.5 bg-surface-elevated-dark hover:bg-hairline-dark disabled:opacity-40 border border-hairline-dark text-on-dark text-xs font-semibold rounded-md inline-flex items-center gap-1.5 transition-colors"
               >
                 {resolveMutation.isPending ? (
                   <span className="animate-spin text-primary">●</span>
@@ -166,7 +166,7 @@ export const VpaEntryPage: React.FC = () => {
 
             {/* Bank suffix chips */}
             <div className="mt-2.5 flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
-              <span className="text-[11px] text-bone-muted/70 flex items-center gap-1 flex-shrink-0">
+              <span className="text-[11px] text-muted flex items-center gap-1 flex-shrink-0 font-mono">
                 <Building className="w-3 h-3" /> Handles:
               </span>
               {COMMON_BANKS.map((bankSuffix) => (
@@ -174,7 +174,7 @@ export const VpaEntryPage: React.FC = () => {
                   key={bankSuffix}
                   type="button"
                   onClick={() => appendBankSuffix(bankSuffix)}
-                  className="px-2 py-0.5 rounded-pill bg-canvas-elevated hover:bg-white/10 border border-white/5 text-bone-muted hover:text-bone text-[11px] font-mono whitespace-nowrap transition-colors"
+                  className="px-2.5 py-0.5 rounded-pill bg-surface-elevated-dark hover:bg-hairline-dark border border-hairline-dark text-muted hover:text-on-dark text-[11px] font-mono whitespace-nowrap transition-colors"
                 >
                   {bankSuffix}
                 </button>
@@ -184,11 +184,11 @@ export const VpaEntryPage: React.FC = () => {
 
           {/* Amount Input */}
           <div>
-            <label className="block text-xs font-semibold uppercase font-mono tracking-wider text-bone-muted mb-2">
+            <label className="block text-xs font-semibold uppercase font-mono tracking-wider text-muted mb-2">
               Payment Amount (INR)
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-bone-muted font-bold text-lg select-none">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted font-bold text-lg select-none">
                 ₹
               </span>
               <input
@@ -201,7 +201,7 @@ export const VpaEntryPage: React.FC = () => {
                   setInputError(null);
                 }}
                 placeholder="0"
-                className="w-full bg-canvas border border-white/10 rounded-xl pl-9 pr-4 py-3 text-bone font-mono text-xl font-bold tnum placeholder:text-bone-muted/40 focus:outline-none focus:border-primary transition-colors"
+                className="w-full bg-canvas border border-hairline-dark rounded-lg pl-9 pr-4 py-3 text-on-dark font-mono text-xl font-bold tnum placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
               />
             </div>
 
@@ -212,7 +212,7 @@ export const VpaEntryPage: React.FC = () => {
                   key={amt}
                   type="button"
                   onClick={() => handleQuickAmount(amt)}
-                  className="px-3 py-1 rounded-pill bg-canvas-elevated hover:bg-white/10 border border-white/5 text-bone-muted hover:text-bone text-xs font-semibold tnum transition-colors flex-shrink-0"
+                  className="px-3 py-1 rounded-pill bg-surface-elevated-dark hover:bg-hairline-dark border border-hairline-dark text-muted hover:text-on-dark text-xs font-semibold font-mono tnum transition-colors flex-shrink-0"
                 >
                   +₹{amt}
                 </button>
@@ -223,7 +223,7 @@ export const VpaEntryPage: React.FC = () => {
 
         {/* Input / Resolution Error Message */}
         {inputError && (
-          <div className="p-3 rounded-xl bg-accent-red/10 border border-accent-red/20 flex items-start gap-2.5 text-accent-red text-xs">
+          <div className="p-3 rounded-lg bg-trading-down/10 border border-trading-down/30 flex items-start gap-2.5 text-trading-down text-xs font-medium">
             <ShieldAlert className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <div className="flex-1">{inputError}</div>
           </div>
@@ -231,8 +231,8 @@ export const VpaEntryPage: React.FC = () => {
 
         {/* Receiver Resolved Preview Card */}
         {previewReceiver && (
-          <div className="space-y-2 pt-2 border-t border-white/5">
-            <div className="text-[11px] font-mono uppercase font-semibold text-bone-muted tracking-wider">
+          <div className="space-y-2 pt-2 border-t border-hairline-dark">
+            <div className="text-[11px] font-mono uppercase font-semibold text-muted tracking-wider">
               Verified Receiver Details
             </div>
             <ReceiverCard
@@ -251,14 +251,14 @@ export const VpaEntryPage: React.FC = () => {
             type="button"
             onClick={previewReceiver ? handleProceedToConfirm : handleVerify}
             disabled={resolveMutation.isPending || !vpa}
-            className="w-full py-3.5 px-5 rounded-xl bg-primary hover:bg-primary/90 disabled:opacity-40 text-canvas font-bold text-sm tracking-wide transition-all shadow-lg flex items-center justify-center gap-2"
+            className="w-full py-3 px-5 rounded-md bg-primary hover:bg-primary-hover active:bg-primary-active disabled:opacity-40 text-on-primary font-semibold text-sm tracking-wide transition-all shadow-md flex items-center justify-center gap-2"
           >
             {resolveMutation.isPending ? (
               <span>Verifying Receiver...</span>
             ) : previewReceiver ? (
               <>
                 <span>Proceed to Pay</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 stroke-[2.5]" />
               </>
             ) : (
               <>
@@ -271,7 +271,7 @@ export const VpaEntryPage: React.FC = () => {
       </div>
 
       {/* Security Guarantee Banner */}
-      <div className="p-4 rounded-xl bg-canvas-elevated/50 border border-white/5 flex items-center gap-3 text-xs text-bone-muted">
+      <div className="p-4 rounded-xl bg-surface-card-dark border border-hairline-dark flex items-center gap-3 text-xs text-muted">
         <AlertCircle className="w-4 h-4 text-primary flex-shrink-0" />
         <div>
           Transactions are inspected by SPYDE fraud graphs before authorization.
@@ -279,4 +279,4 @@ export const VpaEntryPage: React.FC = () => {
       </div>
     </div>
   );
-};
+};

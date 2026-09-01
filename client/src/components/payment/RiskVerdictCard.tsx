@@ -30,27 +30,27 @@ export const RiskVerdictCard: React.FC<RiskVerdictCardProps> = ({
         return {
           title: title || 'Low Risk Verified',
           desc: description || 'Safe Circle or reputable receiver with clean telemetry.',
-          badgeBg: 'bg-accent-green/15 text-accent-green border-accent-green/30',
-          containerBorder: 'border-accent-green/30',
-          icon: <ShieldCheck className="w-6 h-6 text-accent-green" />,
+          badgeBg: 'bg-trading-up/15 text-trading-up border-trading-up/30',
+          containerBorder: 'border-trading-up/30',
+          icon: <ShieldCheck className="w-6 h-6 text-trading-up" />,
           statusText: 'PASS',
         };
       case 'WARN':
         return {
           title: title || 'Caution Recommended',
           desc: description || 'Unusual payment patterns or newly registered receiver.',
-          badgeBg: 'bg-accent-yellow/15 text-accent-yellow border-accent-yellow/30',
-          containerBorder: 'border-accent-yellow/30',
-          icon: <AlertTriangle className="w-6 h-6 text-accent-yellow" />,
+          badgeBg: 'bg-primary/15 text-primary border-primary/30',
+          containerBorder: 'border-primary/30',
+          icon: <AlertTriangle className="w-6 h-6 text-primary" />,
           statusText: 'WARNING',
         };
       case 'CHALLENGE':
         return {
           title: title || 'Identity Verification Required',
           desc: description || 'High risk signals detected. Face liveness required to release funds.',
-          badgeBg: 'bg-accent-orange/15 text-accent-orange border-accent-orange/30',
-          containerBorder: 'border-accent-orange/30',
-          icon: <UserCheck className="w-6 h-6 text-accent-orange" />,
+          badgeBg: 'bg-primary-active/15 text-primary-active border-primary-active/30',
+          containerBorder: 'border-primary-active/30',
+          icon: <UserCheck className="w-6 h-6 text-primary-active" />,
           statusText: 'CHALLENGE',
         };
       case 'BLOCK':
@@ -58,9 +58,9 @@ export const RiskVerdictCard: React.FC<RiskVerdictCardProps> = ({
         return {
           title: title || 'Transaction Blocked',
           desc: description || 'High certainty of fraud or active flagged report on this receiver.',
-          badgeBg: 'bg-accent-red/15 text-accent-red border-accent-red/30',
-          containerBorder: 'border-accent-red/30',
-          icon: <ShieldBan className="w-6 h-6 text-accent-red" />,
+          badgeBg: 'bg-trading-down/15 text-trading-down border-trading-down/30',
+          containerBorder: 'border-trading-down/30',
+          icon: <ShieldBan className="w-6 h-6 text-trading-down" />,
           statusText: 'BLOCKED',
         };
     }
@@ -70,11 +70,11 @@ export const RiskVerdictCard: React.FC<RiskVerdictCardProps> = ({
 
   return (
     <div
-      className={`bg-canvas-card border ${config.containerBorder} rounded-2xl p-5 sm:p-6 shadow-xl ${className}`}
+      className={`bg-surface-card-dark border ${config.containerBorder} rounded-xl p-5 sm:p-6 shadow-xl ${className}`}
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start gap-4">
-          <div className="p-3 rounded-xl bg-canvas-elevated border border-white/5">
+          <div className="p-3 rounded-lg bg-surface-elevated-dark border border-hairline-dark">
             {config.icon}
           </div>
           <div>
@@ -85,8 +85,8 @@ export const RiskVerdictCard: React.FC<RiskVerdictCardProps> = ({
                 {config.statusText}
               </span>
             </div>
-            <h4 className="text-bone font-bold text-lg mt-1">{config.title}</h4>
-            <p className="text-bone-muted text-xs sm:text-sm mt-0.5 max-w-md leading-relaxed">
+            <h4 className="text-on-dark font-bold text-lg mt-1 font-sans">{config.title}</h4>
+            <p className="text-muted text-xs sm:text-sm mt-0.5 max-w-md leading-relaxed">
               {config.desc}
             </p>
           </div>
@@ -100,8 +100,8 @@ export const RiskVerdictCard: React.FC<RiskVerdictCardProps> = ({
 
       {/* Signals List */}
       {signals.length > 0 && (
-        <div className="mt-5 pt-4 border-t border-white/10 space-y-2">
-          <div className="text-[11px] font-mono uppercase font-semibold text-bone-muted tracking-wider mb-2">
+        <div className="mt-5 pt-4 border-t border-hairline-dark space-y-2">
+          <div className="text-[11px] font-mono uppercase font-semibold text-muted tracking-wider mb-2">
             Detected Telemetry Signals ({signals.length})
           </div>
           {signals.map((sig, idx) => (
@@ -111,4 +111,4 @@ export const RiskVerdictCard: React.FC<RiskVerdictCardProps> = ({
       )}
     </div>
   );
-};
+};

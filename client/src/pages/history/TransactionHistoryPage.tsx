@@ -87,28 +87,28 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({
     switch (verdict) {
       case 'PASS':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-primary/10 text-primary text-[10px] font-bold border border-primary/20">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-trading-up/15 text-trading-up text-[10px] font-bold border border-trading-up/30 font-mono">
             <ShieldCheck className="w-3 h-3" />
             Clean
           </span>
         );
       case 'WARN':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-accent-amber/10 text-accent-amber text-[10px] font-bold border border-accent-amber/20">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-primary/15 text-primary text-[10px] font-bold border border-primary/30 font-mono">
             <AlertTriangle className="w-3 h-3" />
             Warn
           </span>
         );
       case 'CHALLENGE':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-accent-terracotta/10 text-accent-terracotta text-[10px] font-bold border border-accent-terracotta/20">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-primary-hover/15 text-primary-hover text-[10px] font-bold border border-primary-hover/30 font-mono">
             <ShieldAlert className="w-3 h-3" />
             Challenged
           </span>
         );
       case 'BLOCK':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-accent-ruby/10 text-accent-ruby text-[10px] font-bold border border-accent-ruby/20">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-pill bg-trading-down/15 text-trading-down text-[10px] font-bold border border-trading-down/30 font-mono">
             <ShieldAlert className="w-3 h-3" />
             Blocked
           </span>
@@ -131,33 +131,33 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({
         <button
           type="button"
           onClick={() => navigate('/home')}
-          className="flex items-center gap-1 text-sm text-bone-muted hover:text-bone mb-3 transition-colors"
+          className="flex items-center gap-1 text-sm text-muted hover:text-on-dark mb-3 font-semibold transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Dashboard
         </button>
-        <h1 className="text-xl font-bold text-bone sm:text-2xl">
+        <h1 className="text-xl font-bold text-on-dark sm:text-2xl font-sans">
           Transaction Ledger
         </h1>
-        <p className="text-xs text-bone-muted sm:text-sm mt-0.5">
+        <p className="text-xs text-muted sm:text-sm mt-0.5">
           Real-time payment audit logs, cryptographic signatures, and risk verdicts.
         </p>
       </div>
 
       <div className="space-y-3">
         <div className="relative">
-          <Search className="w-4 h-4 text-bone-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by VPA or transaction ID..."
-            className="w-full rounded-xl bg-canvas-subtle border border-canvas-border pl-10 pr-4 py-2.5 text-xs text-bone placeholder:text-bone-muted/40 focus:outline-none focus:border-primary transition-colors"
+            className="w-full rounded-lg bg-surface-card-dark border border-hairline-dark pl-10 pr-4 py-2.5 text-xs text-on-dark placeholder:text-muted focus:outline-none focus:border-primary transition-colors font-mono"
           />
         </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-          <Filter className="w-3.5 h-3.5 text-bone-muted shrink-0 mr-1" />
+          <Filter className="w-3.5 h-3.5 text-muted shrink-0 mr-1" />
           {VERDICT_TABS.map((tab) => (
             <button
               key={tab.value}
@@ -167,10 +167,10 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({
                 setOffset(0);
               }}
               className={cn(
-                'shrink-0 text-xs px-3 py-1.5 rounded-pill font-medium transition-all',
+                'shrink-0 text-xs px-3 py-1.5 rounded-pill font-semibold transition-all',
                 selectedVerdict === tab.value
-                  ? 'bg-primary text-bone'
-                  : 'bg-canvas-subtle border border-canvas-border text-bone-muted hover:text-bone',
+                  ? 'bg-primary text-on-primary font-bold shadow-sm'
+                  : 'bg-surface-card-dark border border-hairline-dark text-muted hover:text-on-dark',
               )}
             >
               {tab.label}
@@ -184,41 +184,41 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({
           {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
-              className="flex items-center justify-between p-3.5 rounded-xl bg-canvas-subtle animate-pulse border border-canvas-border"
+              className="flex items-center justify-between p-3.5 rounded-xl bg-surface-card-dark animate-pulse border border-hairline-dark"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-canvas-muted/40" />
+                <div className="w-10 h-10 rounded-full bg-surface-elevated-dark" />
                 <div className="space-y-1.5">
-                  <div className="w-28 h-3 rounded bg-canvas-muted/40" />
-                  <div className="w-16 h-2 rounded bg-canvas-muted/30" />
+                  <div className="w-28 h-3 rounded bg-surface-elevated-dark" />
+                  <div className="w-16 h-2 rounded bg-surface-elevated-dark" />
                 </div>
               </div>
-              <div className="w-16 h-4 rounded bg-canvas-muted/40" />
+              <div className="w-16 h-4 rounded bg-surface-elevated-dark" />
             </div>
           ))}
         </div>
       )}
 
       {isError && !isLoading && (
-        <div className="py-12 text-center rounded-2xl bg-canvas-card border border-canvas-border p-6 space-y-3">
-          <ShieldAlert className="w-10 h-10 text-accent-ruby mx-auto" />
-          <h3 className="text-sm font-bold text-bone">Failed to Load History</h3>
-          <p className="text-xs text-bone-muted max-w-sm mx-auto">
+        <div className="py-12 text-center rounded-xl bg-surface-card-dark border border-trading-down/30 p-6 space-y-3 shadow-sm">
+          <ShieldAlert className="w-10 h-10 text-trading-down mx-auto" />
+          <h3 className="text-sm font-bold text-on-dark font-sans">Failed to Load History</h3>
+          <p className="text-xs text-muted max-w-sm mx-auto">
             Unable to connect to the SPYDE ledger service. Please verify your connection and try again.
           </p>
-          <Button variant="ghost" onClick={() => void refetch()} className="rounded-pill text-xs">
+          <Button variant="ghost" onClick={() => void refetch()} className="rounded-md text-xs">
             Retry
           </Button>
         </div>
       )}
 
       {!isLoading && !isError && transactions.length === 0 && (
-        <div className="py-12 text-center rounded-2xl bg-canvas-card border border-canvas-border p-6 space-y-2">
-          <div className="w-12 h-12 rounded-full bg-canvas-subtle border border-canvas-border flex items-center justify-center mx-auto text-bone-muted">
+        <div className="py-12 text-center rounded-xl bg-surface-card-dark border border-hairline-dark p-6 space-y-2 shadow-sm">
+          <div className="w-12 h-12 rounded-full bg-surface-elevated-dark border border-hairline-dark flex items-center justify-center mx-auto text-muted">
             <Clock className="w-6 h-6" />
           </div>
-          <h3 className="text-sm font-semibold text-bone">No Records Found</h3>
-          <p className="text-xs text-bone-muted max-w-xs mx-auto">
+          <h3 className="text-sm font-semibold text-on-dark font-sans">No Records Found</h3>
+          <p className="text-xs text-muted max-w-xs mx-auto">
             No transactions match the selected filter criteria.
           </p>
         </div>
@@ -239,19 +239,19 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15, delay: idx * 0.02 }}
                   onClick={() => navigate(`/history/${tx.id}`)}
-                  className="group flex items-center justify-between p-3.5 rounded-xl bg-canvas-card hover:bg-canvas-subtle border border-canvas-border hover:border-canvas-border/80 transition-all cursor-pointer"
+                  className="group flex items-center justify-between p-3.5 rounded-xl bg-surface-card-dark hover:bg-surface-elevated-dark border border-hairline-dark hover:border-hairline-dark transition-all cursor-pointer shadow-sm"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="relative shrink-0">
-                      <div className="w-10 h-10 rounded-full bg-canvas-subtle border border-canvas-border flex items-center justify-center text-xs font-bold text-bone">
+                      <div className="w-10 h-10 rounded-full bg-surface-elevated-dark border border-hairline-dark flex items-center justify-center text-xs font-bold text-on-dark font-sans">
                         {getInitials(targetName)}
                       </div>
                       <span
                         className={cn(
-                          'absolute -bottom-0.5 -right-0.5 p-0.5 rounded-full border border-canvas-bg',
+                          'absolute -bottom-0.5 -right-0.5 p-0.5 rounded-full border border-canvas',
                           isDebit
-                            ? 'bg-accent-terracotta text-bone'
-                            : 'bg-primary text-bone',
+                            ? 'bg-surface-elevated-dark text-muted'
+                            : 'bg-trading-up text-on-dark',
                         )}
                       >
                         {isDebit ? (
@@ -264,12 +264,12 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-xs font-semibold text-bone truncate max-w-[140px] sm:max-w-[200px]">
+                        <p className="text-xs font-semibold text-on-dark truncate max-w-[140px] sm:max-w-[200px] font-sans">
                           {targetName}
                         </p>
                         {getVerdictBadge(tx.riskVerdict)}
                       </div>
-                      <p className="text-[11px] text-bone-muted font-mono truncate max-w-[160px]">
+                      <p className="text-[11px] text-muted font-mono truncate max-w-[160px]">
                         {tx.receiverVpa}
                       </p>
                     </div>
@@ -278,21 +278,21 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({
                   <div className="text-right shrink-0 space-y-0.5">
                     <span
                       className={cn(
-                        'text-xs font-bold font-heading tnum block',
-                        isDebit ? 'text-bone' : 'text-primary',
+                        'text-xs font-bold font-mono tnum block',
+                        isDebit ? 'text-on-dark' : 'text-trading-up',
                       )}
                     >
                       {isDebit ? '-' : '+'}
                       {formatRupees(tx.amountRupees || 0)}
                     </span>
-                    <div className="flex items-center justify-end gap-1.5 text-[10px] text-bone-muted">
+                    <div className="flex items-center justify-end gap-1.5 text-[10px] text-muted font-mono">
                       {tx.status === 'FAILED' && (
                         <Link
                           to={`/complaints/new?vpa=${encodeURIComponent(tx.receiverVpa || '')}`}
                           onClick={(e: React.MouseEvent<HTMLAnchorElement>) =>
                             e.stopPropagation()
                           }
-                          className="text-[10px] font-semibold text-accent-ruby hover:underline inline-flex items-center gap-0.5"
+                          className="text-[10px] font-semibold text-trading-down hover:underline inline-flex items-center gap-0.5"
                         >
                           <AlertTriangle className="w-3 h-3" />
                           Dispute
@@ -314,7 +314,7 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({
       )}
 
       {!isLoading && !isError && total > PAGE_SIZE && (
-        <div className="flex items-center justify-between pt-4 border-t border-canvas-border text-xs text-bone-muted">
+        <div className="flex items-center justify-between pt-4 border-t border-hairline-dark text-xs text-muted font-mono">
           <span>
             Page {currentPage} of {totalPages} ({total} records)
           </span>
@@ -323,7 +323,7 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({
               variant="ghost"
               onClick={handlePrevPage}
               disabled={offset === 0}
-              className="rounded-pill p-2 text-bone disabled:opacity-40"
+              className="rounded-md p-2 text-on-dark disabled:opacity-40"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
@@ -331,7 +331,7 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({
               variant="ghost"
               onClick={handleNextPage}
               disabled={offset + PAGE_SIZE >= total}
-              className="rounded-pill p-2 text-bone disabled:opacity-40"
+              className="rounded-md p-2 text-on-dark disabled:opacity-40"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
@@ -340,4 +340,4 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({
       )}
     </motion.div>
   );
-};
+};

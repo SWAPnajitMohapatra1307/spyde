@@ -1,49 +1,158 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
+        // Zapier Design System Tokens (Responsive to Dark & Light via CSS Variables)
+        primary: {
+          DEFAULT: '#ff4f00',
+          hover: '#e04500',
+          active: '#cc3f00',
+          disabled: '#5a2510',
+        },
+        'on-primary': '#fffefb',
+        ink: {
+          DEFAULT: '#201515',
+          soft: '#2f2a26',
+          mid: '#36342e',
+        },
+        body: {
+          DEFAULT: 'var(--text-body)',
+          'on-light': '#605d52',
+          mid: '#939084',
+        },
+        muted: {
+          DEFAULT: 'var(--text-muted)',
+          strong: '#939084',
+        },
+        mute: '#c5c0b1',
+        hairline: {
+          DEFAULT: 'var(--hairline)',
+          'on-light': '#e8e3d9',
+          'on-dark': 'var(--hairline)',
+          dark: 'var(--hairline)',
+          light: '#e8e3d9',
+        },
+        border: {
+          DEFAULT: 'var(--hairline)',
+          strong: '#c5c0b1',
+        },
+        canvas: {
+          DEFAULT: 'var(--canvas-bg)',
+          dark: '#1c1413',
+          light: '#fffefb',
+          card: 'var(--surface-card)',
+          elevated: 'var(--surface-elevated)',
+          subtle: 'var(--canvas-subtle)',
+          soft: 'var(--canvas-subtle)',
+          muted: 'var(--surface-elevated)',
+          border: 'var(--hairline)',
+        },
+        surface: {
+          DEFAULT: 'var(--surface-card)',
+          'card-dark': 'var(--surface-card)',
+          'elevated-dark': 'var(--surface-elevated)',
+          'card-light': '#fffefb',
+          'elevated-light': '#f8f4f0',
+          'soft-light': '#f8f4f0',
+          'strong-light': '#f8f4f0',
+          1: 'var(--surface-card)',
+          2: 'var(--surface-elevated)',
+        },
+        'on-dark': 'var(--text-on-dark)',
+        'trading-up': '#0ecb81',
+        'trading-down': '#f6465d',
+        accent: {
+          turquoise: '#2dbdb6',
+          green: '#0ecb81',
+          red: '#f6465d',
+          orange: '#ff4f00',
+          yellow: '#fcd535',
+          amber: '#ff4f00',
+          terracotta: '#ff4f00',
+          ruby: '#f6465d',
+        },
+        info: {
+          DEFAULT: '#ff4f00',
+          ring: '#ff4f00',
+        },
+
+        // Legacy / Component Aliases for Smooth Compatibility
+        bone: {
+          DEFAULT: 'var(--text-body)',
+          muted: 'var(--text-muted)',
+        },
         spyde: {
-          // Canvas & Surfaces (Design.md §1.1)
-          canvas: '#13161A',
-          'surface-1': '#1D2128',
-          'surface-2': '#272C35',
-          hairline: '#333A45',
-
-          // Typography Colors (Design.md §1.2)
-          bone: '#F5F2E9',      // Warm Bone — primary text (NOT #FFFFFF)
-          sand: '#A1A1AA',      // Sand — secondary text
-          muted: '#71717A',     // Muted — disabled states
-
-          // Brand Primary (Design.md §1.3)
-          jade: '#1A8276',       // Muted Jade — PASS, primary CTA
-          'jade-press': '#136359',
-          'jade-wash': 'rgba(26, 130, 118, 0.15)',
-
-          // Semantic Risk Palette (Design.md §1.4)
-          amber: '#D97706',      // Honey Amber — WARN (50-74)
-          terracotta: '#C2410C', // Terracotta — CHALLENGE (75-89)
-          ruby: '#9F1239',       // Deep Ruby — BLOCK (90-100)
+          canvas: 'var(--canvas-bg)',
+          'surface-1': 'var(--surface-card)',
+          'surface-2': 'var(--surface-elevated)',
+          hairline: 'var(--hairline)',
+          bone: 'var(--text-body)',
+          sand: 'var(--text-muted)',
+          muted: 'var(--text-muted)',
+          jade: '#ff4f00',
+          'jade-press': '#e04500',
+          'jade-wash': 'rgba(255, 79, 0, 0.15)',
+          amber: '#ff4f00',
+          terracotta: '#ff4f00',
+          ruby: '#f6465d',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Roboto Mono', 'monospace'],
+        sans: ['Degular Display', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        mono: ['JetBrains Mono', 'IBM Plex Sans', 'monospace'],
+        plex: ['JetBrains Mono', 'IBM Plex Sans', 'monospace'],
+        display: ['Degular Display', 'Inter', 'sans-serif'],
+        heading: ['Degular Display', 'Inter', 'sans-serif'],
       },
       fontSize: {
-        // Design.md §2.1 Typography Scale (weight 300 = thin)
-        'display-xl': ['48px', { lineHeight: '1.1', letterSpacing: '-0.96px', fontWeight: '300' }],
-        'display-lg': ['32px', { lineHeight: '1.2', letterSpacing: '-0.64px', fontWeight: '300' }],
-        'display-md': ['24px', { lineHeight: '1.3', letterSpacing: '-0.40px', fontWeight: '300' }],
-        'heading-md': ['20px', { lineHeight: '1.4', letterSpacing: '-0.20px', fontWeight: '300' }],
-        'body-md': ['15px', { lineHeight: '1.6', letterSpacing: '0px', fontWeight: '300' }],
-        'button-md': ['15px', { lineHeight: '1.4', letterSpacing: '0px', fontWeight: '400' }],
-        'caption': ['13px', { lineHeight: '1.5', letterSpacing: '0.2px', fontWeight: '400' }],
+        // Zapier Typography Hierarchy
+        'display-xl': ['56px', { lineHeight: '56px', letterSpacing: '0px', fontWeight: '500' }],
+        'display-lg': ['48px', { lineHeight: '48px', letterSpacing: '0px', fontWeight: '500' }],
+        'display-md': ['32px', { lineHeight: '36px', letterSpacing: '1px', fontWeight: '500' }],
+        'display-sub-lg': ['48px', { lineHeight: '49.92px', letterSpacing: '0px', fontWeight: '500' }],
+        'display-sub-md': ['32px', { lineHeight: '40px', letterSpacing: '0px', fontWeight: '400' }],
+        'display-sub-sm': ['24px', { lineHeight: '30px', letterSpacing: '-0.6px', fontWeight: '600' }],
+        'display-xs': ['20px', { lineHeight: '25px', letterSpacing: '-0.5px', fontWeight: '700' }],
+        'body-lg': ['20px', { lineHeight: '30px', letterSpacing: '-0.2px', fontWeight: '400' }],
+        'body-md': ['18px', { lineHeight: '27px', letterSpacing: '0px', fontWeight: '400' }],
+        'body-md-strong': ['18px', { lineHeight: '27px', letterSpacing: '0px', fontWeight: '600' }],
+        'body-sm': ['16px', { lineHeight: '24px', letterSpacing: '0px', fontWeight: '400' }],
+        'body-sm-strong': ['16px', { lineHeight: '24px', letterSpacing: '0px', fontWeight: '600' }],
+        'caption': ['14px', { lineHeight: '21px', letterSpacing: '0px', fontWeight: '400' }],
+        'eyebrow': ['14px', { lineHeight: '14px', letterSpacing: '1px', fontWeight: '500' }],
+        'button-md': ['18px', { lineHeight: '27px', letterSpacing: '0px', fontWeight: '600' }],
+        'button-sm': ['14.4px', { lineHeight: '14.4px', letterSpacing: '0.144px', fontWeight: '700' }],
+
+        // Backward compatibility mappings
+        'hero-display': ['56px', { lineHeight: '56px', letterSpacing: '0px', fontWeight: '500' }],
+        'title-lg': ['24px', { lineHeight: '30px', letterSpacing: '-0.6px', fontWeight: '600' }],
+        'title-md': ['20px', { lineHeight: '25px', letterSpacing: '-0.5px', fontWeight: '700' }],
+        'title-sm': ['16px', { lineHeight: '24px', letterSpacing: '0px', fontWeight: '600' }],
       },
       borderRadius: {
-        pill: '9999px',    // All buttons & tags (Design.md §3)
-        card: '12px',      // All cards & modals (Design.md §3)
+        none: '0px',
+        xs: '4px',
+        sm: '6px',
+        md: '12px',
+        lg: '12px',
+        xl: '12px',
+        card: '12px',
+        pill: '9999px',
+        full: '9999px',
+      },
+      spacing: {
+        xxs: '2px',
+        xs: '4px',
+        sm: '8px',
+        md: '12px',
+        lg: '16px',
+        xl: '24px',
+        '2xl': '32px',
+        '3xl': '48px',
+        '4xl': '64px',
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -52,3 +161,4 @@ export default {
   },
   plugins: [],
 };
+

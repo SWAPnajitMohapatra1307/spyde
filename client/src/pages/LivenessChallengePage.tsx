@@ -177,45 +177,45 @@ export const LivenessChallengePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between p-4 max-w-md mx-auto">
+      {/* Top Bar */}
       <div className="text-center space-y-1 py-3">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-mono">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-pill bg-primary/10 border border-primary/20 text-primary text-xs font-mono font-semibold">
           <ShieldCheck className="w-4 h-4" />
           <span>SPYDE Biometric Escrow Release</span>
         </div>
-        <h1 className="text-lg font-bold text-white">Face Liveness Verification</h1>
+        <h1 className="text-lg font-bold text-on-dark font-sans">Face Liveness Verification</h1>
       </div>
 
-      {(step === 'INITIALIZING' || step === 'CHALLENGE' || step === 'PROCESSING') && (
-        <div className="relative w-[270px] h-[280px] mx-auto rounded-full overflow-hidden border-4 border-orange-500/40 shadow-2xl bg-slate-900 flex items-center justify-center my-2">
-          <video
-            ref={videoRef}
-            playsInline
-            muted
-            className="w-full h-full object-cover -scale-x-100"
-          />
-          <canvas ref={canvasRef} className="hidden" />
+      {/* Camera Preview Viewport */}
+      <div className="relative w-[270px] h-[280px] mx-auto rounded-full overflow-hidden border-4 border-orange-500/40 shadow-2xl bg-slate-900 flex items-center justify-center my-2">
+        <video
+          ref={videoRef}
+          playsInline
+          muted
+          className="w-full h-full object-cover -scale-x-100"
+        />
+        <canvas ref={canvasRef} className="hidden" />
 
-          {!isActive && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 text-center p-4 space-y-3">
-              <Camera className="w-10 h-10 text-slate-500 animate-pulse" />
-              <p className="text-xs text-slate-400">Initializing camera feed...</p>
-            </div>
-          )}
+        {!isActive && step !== 'SUCCESS' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 text-center p-4 space-y-3">
+            <Camera className="w-10 h-10 text-slate-500 animate-pulse" />
+            <p className="text-xs text-slate-400">Initializing camera feed...</p>
+          </div>
+        )}
 
-          {error && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-950/90 text-center p-4 space-y-2 z-10">
-              <AlertTriangle className="w-8 h-8 text-red-400" />
-              <p className="text-xs text-slate-200 font-semibold">{error.message}</p>
-              <button
-                onClick={handleRestart}
-                className="mt-2 px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg"
-              >
-                Retry Camera
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+        {error && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-950/90 text-center p-4 space-y-2 z-10">
+            <AlertTriangle className="w-8 h-8 text-red-400" />
+            <p className="text-xs text-slate-200 font-semibold">{error.message}</p>
+            <button
+              onClick={handleRestart}
+              className="mt-2 px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg"
+            >
+              Retry Camera
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="my-2">
         {step === 'CHALLENGE' && isActive && (
@@ -276,58 +276,52 @@ export const LivenessChallengePage: React.FC = () => {
         {step === 'PROCESSING' && (
           <div className="text-center space-y-2 py-4">
             <RefreshCw className="w-8 h-8 text-orange-500 animate-spin mx-auto" />
-            <p className="text-xs font-mono text-orange-400 font-bold">
-              {consentGiven
-                ? 'Encrypting face blob & computing ZK proof...'
-                : 'Computing ZK Vector Proof...'}
-            </p>
+            <p className="text-xs font-mono text-orange-400 font-bold">Computing ZK Vector Proof...</p>
           </div>
         )}
 
         {step === 'SUCCESS' && (
-          <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-5 text-center space-y-3 shadow-xl">
-            <div className="flex items-center justify-center gap-2 text-emerald-400 font-bold text-sm">
+          <div className="bg-surface-card-dark border border-trading-up/30 rounded-xl p-5 text-center space-y-3 shadow-xl">
+            <div className="flex items-center justify-center gap-2 text-trading-up font-bold text-sm">
               <CheckCircle2 className="w-5 h-5" /> Biometric Verification Complete
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              {consentGiven
-                ? 'Face proof encrypted & escrow released. Sender can view once for 10s.'
-                : 'Escrow released. No face proof shared with sender.'}
+              Escrow funds have been successfully unlocked for transfer.
             </p>
             <button
               onClick={() => navigate('/')}
-              className="w-full py-3 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-md"
+              className="w-full py-3 rounded-md bg-trading-up text-on-dark font-semibold text-xs flex items-center justify-center gap-2 shadow-md hover:opacity-90 transition-all"
             >
               <span>Done / Close</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
             </button>
           </div>
         )}
 
         {step === 'FAILED' && (
           <div className="text-center space-y-3 py-2">
-            <div className="text-xs font-bold text-red-400 flex items-center justify-center gap-1.5">
+            <div className="text-xs font-bold text-trading-down flex items-center justify-center gap-1.5 font-sans">
               <AlertTriangle className="w-4 h-4" />
               <span>{errorMessage || 'Verification unconfirmed'}</span>
             </div>
             <button
               onClick={handleRestart}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold font-mono transition-colors inline-flex items-center gap-2"
+              className="px-4 py-2 rounded-md bg-surface-card-dark hover:bg-surface-elevated-dark border border-hairline-dark text-on-dark text-xs font-semibold font-mono transition-colors inline-flex items-center gap-2"
             >
-              <RefreshCw className="w-4 h-4 text-orange-400" /> Retry Challenge
+              <RefreshCw className="w-4 h-4 text-primary" /> Retry Challenge
             </button>
           </div>
         )}
       </div>
 
       <div className="max-w-[320px] mx-auto w-full space-y-1.5 pb-2">
-        <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
+        <div className="flex items-center justify-between text-[11px] font-mono text-muted">
           <span>Verification Progress</span>
-          <span className="font-bold text-white">{stepProgress}%</span>
+          <span className="font-bold text-on-dark">{stepProgress}%</span>
         </div>
-        <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-white/5">
+        <div className="h-2 w-full bg-surface-elevated-dark rounded-full overflow-hidden border border-hairline-dark">
           <div
-            className="h-full bg-orange-500 transition-all duration-500 rounded-full"
+            className="h-full bg-primary transition-all duration-500 rounded-full"
             style={{ width: `${stepProgress}%` }}
           />
         </div>

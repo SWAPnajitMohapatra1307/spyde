@@ -26,13 +26,13 @@ const STATUS_FILTERS: Array<{ label: string; value: ComplaintStatus | "ALL" }> =
 const getStatusBadge = (status: ComplaintStatus) => {
   switch (status) {
     case "PENDING":
-      return "bg-accent-yellow/15 text-accent-yellow border-accent-yellow/30";
+      return "bg-primary/15 text-primary border-primary/30";
     case "INVESTIGATING":
-      return "bg-accent-orange/15 text-accent-orange border-accent-orange/30";
+      return "bg-primary-hover/15 text-primary-hover border-primary-hover/30";
     case "RESOLVED":
-      return "bg-accent-green/15 text-accent-green border-accent-green/30";
+      return "bg-trading-up/15 text-trading-up border-trading-up/30";
     case "DISMISSED":
-      return "bg-white/10 text-bone-muted border-white/10";
+      return "bg-surface-elevated-dark text-muted border-hairline-dark";
   }
 };
 
@@ -107,10 +107,10 @@ export const AdminComplaintsPage: React.FC = () => {
 
   if (isError) {
     return (
-      <div className="flex flex-col items-center gap-3 h-64 justify-center text-bone-muted">
-        <AlertTriangle size={24} className="text-accent-red" />
-        <p className="text-sm">Failed to load complaints for moderation.</p>
-        <p className="text-xs text-accent-red">{error?.message}</p>
+      <div className="flex flex-col items-center gap-3 h-64 justify-center text-muted">
+        <AlertTriangle size={24} className="text-trading-down" />
+        <p className="text-sm font-medium text-on-dark">Failed to load complaints for moderation.</p>
+        <p className="text-xs text-trading-down font-mono">{error?.message}</p>
       </div>
     );
   }
@@ -123,14 +123,14 @@ export const AdminComplaintsPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate("/admin")}
-            className="p-2 rounded-lg hover:bg-white/5 text-bone-muted transition-colors"
+            className="p-2 rounded-md hover:bg-surface-card-dark text-muted hover:text-on-dark transition-colors"
             aria-label="Back to admin"
           >
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-bone text-2xl font-bold">Dispute & Complaint Moderation</h1>
-            <p className="text-bone-muted text-sm mt-0.5">
+            <h1 className="text-on-dark text-2xl font-bold font-sans">Dispute & Complaint Moderation</h1>
+            <p className="text-muted text-xs sm:text-sm mt-0.5">
               Review and adjudicate user reports and fraudulent VPA claims
             </p>
           </div>
@@ -141,13 +141,13 @@ export const AdminComplaintsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
         {/* Search */}
         <div className="relative w-full sm:w-80">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-bone-muted" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
           <input
             type="text"
             placeholder="Search by VPA, Category, or ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-canvas-card border border-white/10 rounded-xl text-bone text-sm placeholder:text-bone-muted/60 focus:outline-none focus:border-primary transition-colors"
+            className="w-full pl-9 pr-4 py-2 bg-surface-card-dark border border-hairline-dark rounded-lg text-on-dark text-xs placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
           />
         </div>
 
@@ -158,10 +158,10 @@ export const AdminComplaintsPage: React.FC = () => {
               key={f.value}
               type="button"
               onClick={() => setSelectedStatus(f.value)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-colors ${
                 selectedStatus === f.value
-                  ? "bg-primary text-white"
-                  : "bg-canvas-card border border-white/5 text-bone-muted hover:text-bone"
+                  ? "bg-primary text-on-primary font-bold shadow-sm"
+                  : "bg-surface-card-dark border border-hairline-dark text-muted hover:text-on-dark"
               }`}
             >
               {f.label}
@@ -172,34 +172,34 @@ export const AdminComplaintsPage: React.FC = () => {
 
       {/* Ledger Table */}
       {filteredComplaints.length === 0 ? (
-        <div className="bg-canvas-card rounded-xl p-12 border border-white/5 text-center">
-          <MessageSquare size={32} className="text-bone-muted mx-auto mb-3" />
-          <p className="text-bone font-medium">No complaints found</p>
-          <p className="text-bone-muted text-sm mt-1">
+        <div className="bg-surface-card-dark rounded-xl p-12 border border-hairline-dark text-center shadow-sm">
+          <MessageSquare size={32} className="text-muted mx-auto mb-3" />
+          <p className="text-on-dark font-semibold font-sans">No complaints found</p>
+          <p className="text-muted text-xs mt-1">
             {searchTerm ? "Try adjusting your search criteria." : "No reports in this category."}
           </p>
         </div>
       ) : (
-        <div className="bg-canvas-card rounded-xl border border-white/5 overflow-x-auto">
+        <div className="bg-surface-card-dark rounded-xl border border-hairline-dark overflow-x-auto shadow-sm">
           <table className="w-full min-w-[720px]">
             <thead>
-              <tr className="border-b border-white/10">
-                <th className="py-3 px-4 text-left text-bone-muted text-xs font-medium uppercase tracking-wider">
+              <tr className="border-b border-hairline-dark bg-surface-elevated-dark/50">
+                <th className="py-3 px-4 text-left text-muted text-xs font-semibold uppercase tracking-wider font-mono">
                   Target VPA
                 </th>
-                <th className="py-3 px-4 text-left text-bone-muted text-xs font-medium uppercase tracking-wider">
+                <th className="py-3 px-4 text-left text-muted text-xs font-semibold uppercase tracking-wider font-mono">
                   Category
                 </th>
-                <th className="py-3 px-4 text-left text-bone-muted text-xs font-medium uppercase tracking-wider">
+                <th className="py-3 px-4 text-left text-muted text-xs font-semibold uppercase tracking-wider font-mono">
                   Description
                 </th>
-                <th className="py-3 px-4 text-center text-bone-muted text-xs font-medium uppercase tracking-wider">
+                <th className="py-3 px-4 text-center text-muted text-xs font-semibold uppercase tracking-wider font-mono">
                   Status
                 </th>
-                <th className="py-3 px-4 text-left text-bone-muted text-xs font-medium uppercase tracking-wider">
+                <th className="py-3 px-4 text-left text-muted text-xs font-semibold uppercase tracking-wider font-mono">
                   Date
                 </th>
-                <th className="py-3 px-4 text-right text-bone-muted text-xs font-medium uppercase tracking-wider">
+                <th className="py-3 px-4 text-right text-muted text-xs font-semibold uppercase tracking-wider font-mono">
                   Action
                 </th>
               </tr>
@@ -208,41 +208,41 @@ export const AdminComplaintsPage: React.FC = () => {
               {filteredComplaints.map((item) => (
                 <tr
                   key={item.id}
-                  className="border-b border-white/5 hover:bg-white/[0.02] transition-colors"
+                  className="border-b border-hairline-dark hover:bg-surface-elevated-dark/50 transition-colors"
                 >
                   <td className="py-3 px-4">
-                    <span className="text-bone font-mono font-medium text-sm">{item.targetVpa}</span>
+                    <span className="text-on-dark font-mono font-medium text-xs">{item.targetVpa}</span>
                     {item.reporterMasked && (
-                      <p className="text-bone-muted text-xs font-mono">By: {item.reporterMasked}</p>
+                      <p className="text-muted text-[11px] font-mono">By: {item.reporterMasked}</p>
                     )}
                   </td>
                   <td className="py-3 px-4">
-                    <span className="text-bone-muted text-xs font-medium uppercase px-2 py-0.5 rounded bg-white/5">
+                    <span className="text-muted text-xs font-semibold uppercase px-2 py-0.5 rounded bg-surface-elevated-dark border border-hairline-dark font-mono">
                       {item.category.replace(/_/g, " ")}
                     </span>
                   </td>
                   <td className="py-3 px-4 max-w-xs">
-                    <p className="text-bone text-sm truncate" title={item.description}>
+                    <p className="text-on-dark text-xs truncate" title={item.description}>
                       {item.description}
                     </p>
                   </td>
                   <td className="py-3 px-4 text-center">
                     <span
-                      className={`inline-block px-2.5 py-0.5 text-xs font-medium rounded-pill border ${getStatusBadge(
+                      className={`inline-block px-2.5 py-0.5 text-[11px] font-mono font-bold rounded-pill border ${getStatusBadge(
                         item.status
                       )}`}
                     >
                       {item.status}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-bone-muted text-xs">
+                  <td className="py-3 px-4 text-muted text-xs font-mono">
                     {formatDate(item.createdAt)}
                   </td>
                   <td className="py-3 px-4 text-right">
                     <button
                       type="button"
                       onClick={() => handleOpenModal(item)}
-                      className="px-3 py-1 bg-white/5 hover:bg-white/10 text-primary hover:underline rounded-lg text-xs font-medium transition-colors"
+                      className="px-3 py-1 bg-surface-elevated-dark hover:bg-hairline-dark text-primary hover:underline rounded-md text-xs font-semibold transition-colors border border-hairline-dark"
                     >
                       Adjudicate
                     </button>
@@ -256,34 +256,34 @@ export const AdminComplaintsPage: React.FC = () => {
 
       {/* Triage & Resolution Modal */}
       {activeComplaint && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-          <div className="bg-canvas-card border border-white/10 rounded-2xl w-full max-w-lg p-6 flex flex-col gap-5 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-surface-card-dark border border-hairline-dark rounded-xl w-full max-w-lg p-6 flex flex-col gap-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-hairline-dark pb-4">
               <div>
-                <h3 className="text-bone text-lg font-bold">Complaint Triage</h3>
-                <p className="text-bone-muted text-xs font-mono">ID: {activeComplaint.id}</p>
+                <h3 className="text-on-dark text-lg font-bold font-sans">Complaint Triage</h3>
+                <p className="text-muted text-xs font-mono">ID: {activeComplaint.id}</p>
               </div>
               <button
                 type="button"
                 onClick={handleCloseModal}
-                className="text-bone-muted hover:text-bone text-sm"
+                className="text-muted hover:text-white text-sm"
               >
                 ✕
               </button>
             </div>
 
-            <div className="bg-white/5 rounded-xl p-4 flex flex-col gap-2 text-sm">
+            <div className="bg-surface-elevated-dark rounded-lg p-4 flex flex-col gap-2 text-xs border border-hairline-dark">
               <div className="flex justify-between">
-                <span className="text-bone-muted">Target VPA:</span>
-                <span className="text-bone font-mono font-medium">{activeComplaint.targetVpa}</span>
+                <span className="text-muted">Target VPA:</span>
+                <span className="text-on-dark font-mono font-semibold">{activeComplaint.targetVpa}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-bone-muted">Category:</span>
-                <span className="text-bone font-medium">{activeComplaint.category}</span>
+                <span className="text-muted">Category:</span>
+                <span className="text-on-dark font-semibold">{activeComplaint.category}</span>
               </div>
               <div className="flex flex-col gap-1 mt-1">
-                <span className="text-bone-muted text-xs">Report Detail:</span>
-                <p className="text-bone text-xs bg-canvas rounded-lg p-2.5 border border-white/5 leading-relaxed">
+                <span className="text-muted text-[11px]">Report Detail:</span>
+                <p className="text-on-dark text-xs bg-canvas rounded-lg p-2.5 border border-hairline-dark leading-relaxed">
                   {activeComplaint.description}
                 </p>
               </div>
@@ -291,13 +291,13 @@ export const AdminComplaintsPage: React.FC = () => {
 
             <form onSubmit={handleSubmitResolution} className="flex flex-col gap-4">
               <div>
-                <label className="text-bone text-xs font-medium block mb-1.5">
+                <label className="text-on-dark text-xs font-semibold block mb-1.5 uppercase font-mono tracking-wider">
                   Update Case Status
                 </label>
                 <select
                   value={targetStatus}
                   onChange={(e) => setTargetStatus(e.target.value as ComplaintStatus)}
-                  className="w-full px-3 py-2 bg-canvas border border-white/10 rounded-xl text-bone text-sm focus:outline-none focus:border-primary"
+                  className="w-full px-3 py-2 bg-canvas border border-hairline-dark rounded-lg text-on-dark text-xs focus:outline-none focus:border-primary"
                 >
                   <option value="INVESTIGATING">INVESTIGATING — In Progress</option>
                   <option value="RESOLVED">RESOLVED — Fraud Confirmed / Actioned</option>
@@ -306,7 +306,7 @@ export const AdminComplaintsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-bone text-xs font-medium block mb-1.5">
+                <label className="text-on-dark text-xs font-semibold block mb-1.5 uppercase font-mono tracking-wider">
                   Resolution Notes & Audit Reason
                 </label>
                 <textarea
@@ -314,24 +314,24 @@ export const AdminComplaintsPage: React.FC = () => {
                   value={resolutionNotes}
                   onChange={(e) => setResolutionNotes(e.target.value)}
                   placeholder="State the findings, bank escalation reference, or remediation..."
-                  className="w-full px-3 py-2 bg-canvas border border-white/10 rounded-xl text-bone text-sm placeholder:text-bone-muted/60 focus:outline-none focus:border-primary"
+                  className="w-full px-3 py-2 bg-canvas border border-hairline-dark rounded-lg text-on-dark text-xs placeholder:text-muted focus:outline-none focus:border-primary"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/10">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-hairline-dark">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 rounded-xl text-bone-muted hover:text-bone text-sm transition-colors"
+                  className="px-4 py-2 rounded-md text-muted hover:text-on-dark text-xs font-semibold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={updateMutation.isPending}
-                  className="px-5 py-2 bg-primary hover:bg-primary/90 text-white rounded-xl text-sm font-semibold transition-all disabled:opacity-50 flex items-center gap-2"
+                  className="px-5 py-2 bg-primary hover:bg-primary-hover active:bg-primary-active text-on-primary rounded-md text-xs font-semibold transition-all disabled:opacity-50 flex items-center gap-2 shadow-md"
                 >
-                  {updateMutation.isPending && <Loader2 size={16} className="animate-spin" />}
+                  {updateMutation.isPending && <Loader2 size={16} className="animate-spin text-on-primary" />}
                   Save Decision
                 </button>
               </div>
@@ -341,4 +341,4 @@ export const AdminComplaintsPage: React.FC = () => {
       )}
     </div>
   );
-};
+};

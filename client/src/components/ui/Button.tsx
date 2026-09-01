@@ -3,7 +3,7 @@ import React, { forwardRef } from 'react';
 import { LucideIcon, Loader2 } from 'lucide-react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'outline' | 'warning' | 'danger' | 'safe' | 'challenge';
+  variant?: 'primary' | 'primary-pill' | 'secondary' | 'ghost' | 'outline' | 'warning' | 'danger' | 'safe' | 'challenge' | 'subscribe';
   size?: 'sm' | 'md' | 'lg' | 'full';
   icon?: LucideIcon;
   leftIcon?: React.ReactNode;
@@ -12,21 +12,23 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const variantStyles: Record<string, string> = {
-  primary: 'bg-primary text-bone hover:bg-primary/90',
-  secondary: 'bg-canvas-elevated text-bone hover:bg-white/10 border border-white/10',
-  ghost: 'bg-transparent text-bone-muted hover:text-bone hover:bg-white/5',
-  outline: 'bg-transparent border border-white/15 text-bone hover:bg-white/5',
-  warning: 'bg-accent-yellow text-canvas hover:bg-accent-yellow/90',
-  danger: 'bg-accent-red text-bone hover:bg-accent-red/90',
-  safe: 'bg-accent-green text-canvas hover:bg-accent-green/90',
-  challenge: 'bg-primary text-bone hover:bg-primary/90 ring-2 ring-primary/30',
+  primary: 'bg-primary text-on-primary font-semibold hover:bg-primary-hover active:bg-primary-active rounded-xl shadow-sm cursor-pointer',
+  'primary-pill': 'bg-primary text-on-primary font-semibold hover:bg-primary-hover active:bg-primary-active rounded-pill shadow-md cursor-pointer',
+  secondary: 'bg-surface-card-dark text-on-dark border border-hairline-dark hover:bg-surface-elevated-dark rounded-xl cursor-pointer',
+  ghost: 'bg-transparent text-muted hover:text-on-dark hover:bg-surface-elevated-dark rounded-xl cursor-pointer',
+  outline: 'bg-transparent border border-hairline-dark text-on-dark hover:bg-surface-elevated-dark rounded-xl cursor-pointer',
+  warning: 'bg-primary text-on-primary font-semibold hover:bg-primary-hover rounded-xl cursor-pointer',
+  danger: 'bg-trading-down text-white font-semibold hover:opacity-90 rounded-xl cursor-pointer',
+  safe: 'bg-trading-up text-white font-semibold hover:opacity-90 rounded-xl cursor-pointer',
+  challenge: 'bg-primary text-on-primary font-semibold hover:bg-primary-hover ring-2 ring-primary/30 rounded-xl cursor-pointer',
+  subscribe: 'bg-primary text-on-primary font-semibold hover:bg-primary-hover rounded-xl cursor-pointer',
 };
 
 const sizeStyles: Record<string, string> = {
   sm: 'px-3 py-1.5 text-xs',
-  md: 'px-4 py-2.5 text-sm',
-  lg: 'px-6 py-3 text-base',
-  full: 'w-full px-4 py-3 text-sm',
+  md: 'px-5 py-2.5 text-sm h-10',
+  lg: 'px-6 py-3 text-base h-12',
+  full: 'w-full px-5 py-3 text-sm h-11',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -49,7 +51,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         disabled={disabled || isLoading}
-        className={`inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${variantStyles[variant]} ${sizeStyles[size]} ${fullWidth ? 'w-full' : ''} ${className}`}
+        className={`inline-flex items-center justify-center gap-2 font-semibold transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed ${variantStyles[variant] ?? variantStyles.primary} ${sizeStyles[size]} ${fullWidth ? 'w-full' : ''} ${className}`}
         {...rest}
       >
         {isLoading ? (
@@ -66,4 +68,4 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   }
 );
 
-Button.displayName = 'Button';
+Button.displayName = 'Button';

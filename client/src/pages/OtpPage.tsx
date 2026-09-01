@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import type { User } from '@/types/app';
 
 interface VerifyOtpPayload {
@@ -142,37 +143,41 @@ export const OtpPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-canvas text-bone flex flex-col justify-between py-8 px-4 selection:bg-primary/30 selection:text-white">
+    <div className="min-h-screen bg-canvas text-body flex flex-col justify-between py-8 px-4 selection:bg-primary selection:text-on-primary transition-colors">
       {/* Top Header */}
       <div className="max-w-md w-full mx-auto flex items-center justify-between">
         <Link
           to="/login"
-          className="inline-flex items-center gap-1.5 text-bone-muted hover:text-bone text-xs font-semibold transition-colors"
+          className="inline-flex items-center gap-1.5 text-muted hover:text-on-dark text-xs font-semibold transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Login
         </Link>
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-primary flex items-center justify-center text-canvas font-black text-xs">
-            S
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-on-primary font-black text-xs shadow-sm">
+              S
+            </div>
+            <span className="font-bold text-sm tracking-tight text-on-dark font-sans">SPYDE</span>
           </div>
-          <span className="font-black text-sm tracking-tight text-bone">SPYDE</span>
         </div>
       </div>
 
       {/* Main OTP Card */}
-      <div className="max-w-md w-full mx-auto bg-canvas-card border border-white/10 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
+      <div className="max-w-md w-full mx-auto bg-surface-card-dark border border-hairline-dark rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl">
         <div className="text-center space-y-2">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-canvas-elevated border border-white/10 flex items-center justify-center text-primary">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-surface-elevated-dark border border-hairline-dark flex items-center justify-center text-primary shadow-sm">
             <KeyRound className="w-7 h-7" />
           </div>
-          <h1 className="text-2xl font-extrabold text-bone tracking-tight">
+          <h1 className="text-2xl font-bold text-on-dark tracking-tight font-sans">
             Verify Phone Number
           </h1>
-          <p className="text-xs text-bone-muted leading-relaxed">
+          <p className="text-xs text-muted leading-relaxed">
             Enter the 6-digit authentication code dispatched to{' '}
-            <span className="text-bone font-mono font-semibold">{phone}</span>
+            <span className="text-on-dark font-mono font-semibold">{phone}</span>
           </p>
         </div>
+
 
         <form onSubmit={handleFormSubmit} className="space-y-5">
           {/* 6-box OTP input */}
@@ -187,14 +192,14 @@ export const OtpPage: React.FC = () => {
                 value={digit}
                 onChange={(e) => handleChange(idx, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(idx, e)}
-                className="w-11 h-13 sm:w-12 sm:h-14 bg-canvas border border-white/10 rounded-xl text-center text-bone font-mono text-xl font-bold focus:outline-none focus:border-primary transition-all"
+                className="w-11 h-13 sm:w-12 sm:h-14 bg-canvas border border-hairline-dark rounded-lg text-center text-on-dark font-mono text-xl font-bold focus:outline-none focus:border-primary transition-all"
                 autoFocus={idx === 0}
               />
             ))}
           </div>
 
           {errorMessage && (
-            <div className="p-3 rounded-xl bg-accent-red/10 border border-accent-red/20 text-accent-red text-xs flex items-center gap-2">
+            <div className="p-3 rounded-lg bg-trading-down/10 border border-trading-down/30 text-trading-down text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span>{errorMessage}</span>
             </div>
@@ -204,11 +209,11 @@ export const OtpPage: React.FC = () => {
           <button
             type="submit"
             disabled={verifyOtpMutation.isPending || otp.join('').length < 6}
-            className="w-full py-3.5 px-5 rounded-xl bg-primary hover:bg-primary/90 disabled:opacity-40 text-canvas font-bold text-sm tracking-wide transition-all shadow-lg flex items-center justify-center gap-2"
+            className="w-full py-3 px-5 rounded-md bg-primary hover:bg-primary-hover active:bg-primary-active disabled:opacity-40 text-on-primary font-bold text-sm tracking-wide transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
           >
             {verifyOtpMutation.isPending ? (
               <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
+                <RefreshCw className="w-4 h-4 animate-spin text-on-primary" />
                 <span>Verifying Authentication Code...</span>
               </>
             ) : (
@@ -221,11 +226,11 @@ export const OtpPage: React.FC = () => {
         </form>
 
         {/* Resend & Demo helper */}
-        <div className="text-center space-y-2 pt-2 border-t border-white/5 text-xs">
-          <div className="text-bone-muted">
+        <div className="text-center space-y-2 pt-2 border-t border-hairline-dark text-xs">
+          <div className="text-muted">
             Didn&apos;t receive code?{' '}
             {resendTimer > 0 ? (
-              <span className="text-bone font-mono tnum font-semibold">
+              <span className="text-on-dark font-mono tnum font-semibold">
                 Resend in {resendTimer}s
               </span>
             ) : (
@@ -238,15 +243,15 @@ export const OtpPage: React.FC = () => {
               </button>
             )}
           </div>
-          <div className="text-[11px] font-mono text-bone-muted/60">
+          <div className="text-[11px] font-mono text-muted/60">
             DEMO PASSCODE: 123456
           </div>
         </div>
       </div>
 
       {/* Bottom Trust Badge */}
-      <div className="max-w-md w-full mx-auto text-center flex items-center justify-center gap-1.5 text-xs text-bone-muted">
-        <ShieldCheck className="w-4 h-4 text-accent-green" />
+      <div className="max-w-md w-full mx-auto text-center flex items-center justify-center gap-1.5 text-xs text-muted">
+        <ShieldCheck className="w-4 h-4 text-trading-up" />
         <span>Hardware-backed OTP Encryption</span>
       </div>
     </div>

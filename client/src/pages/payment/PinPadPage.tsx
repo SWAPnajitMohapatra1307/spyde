@@ -28,9 +28,9 @@ export const PinPadPage: React.FC = () => {
 
   const confirmMutation = useMutation({
     mutationFn: async (payload: ConfirmPaymentPayload): Promise<ConfirmPaymentResponse> => {
-  const response = await apiClient.post<any>('/api/payment/confirm', payload);
-  return response.data?.data || response.data;
-     },
+      const response = await apiClient.post<any>('/api/payment/confirm', payload);
+      return response.data?.data || response.data;
+    },
     onSuccess: (data) => {
       if (data.status === 'SUCCESS') {
         if (data.certificateId) {
@@ -90,7 +90,6 @@ export const PinPadPage: React.FC = () => {
     }
 
     if (!transactionId) {
-      // If direct access without transaction ID, simulate fallback or route back
       setErrorMessage('Missing transaction context.');
       return;
     }
@@ -108,29 +107,29 @@ export const PinPadPage: React.FC = () => {
         <button
           onClick={() => navigate(-1)}
           disabled={confirmMutation.isPending}
-          className="inline-flex items-center gap-1.5 text-bone-muted hover:text-bone text-sm transition-colors disabled:opacity-30"
+          className="inline-flex items-center gap-1.5 text-muted hover:text-on-dark text-sm font-semibold transition-colors disabled:opacity-30"
         >
           <ArrowLeft className="w-4 h-4" /> Cancel
         </button>
-        <div className="text-xs font-mono text-bone-muted tracking-wider uppercase">
+        <div className="text-xs font-mono text-muted tracking-wider uppercase font-semibold">
           UPI Authorization
         </div>
       </div>
 
       {/* Recipient & Amount Summary */}
       <div className="text-center space-y-2">
-        <div className="text-xs text-bone-muted font-mono uppercase tracking-wider">
+        <div className="text-xs text-muted font-mono uppercase tracking-wider">
           Paying {receiverName || vpa || 'Recipient'}
         </div>
         <AmountDisplay amount={amount || 0} size="xl" />
-        <div className="text-xs font-mono text-bone-muted select-all">
+        <div className="text-xs font-mono text-muted select-all">
           {vpa}
         </div>
       </div>
 
       {/* PIN Dots Area */}
-      <div className="bg-canvas-card border border-white/10 rounded-2xl p-6 text-center space-y-6">
-        <div className="flex items-center justify-center gap-2 text-xs font-mono uppercase tracking-wider text-bone-muted">
+      <div className="bg-surface-card-dark border border-hairline-dark rounded-xl p-6 text-center space-y-6 shadow-xl">
+        <div className="flex items-center justify-center gap-2 text-xs font-mono uppercase tracking-wider text-muted font-semibold">
           <Lock className="w-3.5 h-3.5 text-primary" /> Enter 4-Digit UPI PIN
         </div>
 
@@ -145,10 +144,10 @@ export const PinPadPage: React.FC = () => {
             return (
               <div
                 key={index}
-                className={`w-4 h-4 rounded-pill transition-all duration-200 ${
+                className={`w-3.5 h-3.5 rounded-full transition-all duration-150 ${
                   isFilled
-                    ? 'bg-primary scale-125 shadow-lg shadow-primary/30 ring-2 ring-primary/40'
-                    : 'bg-canvas-elevated border border-white/20'
+                    ? 'bg-primary ring-4 ring-primary/20 scale-110'
+                    : 'bg-surface-elevated-dark border border-hairline-dark'
                 }`}
               />
             );
@@ -156,14 +155,14 @@ export const PinPadPage: React.FC = () => {
         </div>
 
         {errorMessage && (
-          <div className="p-2.5 rounded-xl bg-accent-red/10 border border-accent-red/20 text-accent-red text-xs flex items-center justify-center gap-1.5">
+          <div className="p-2.5 rounded-lg bg-trading-down/10 border border-trading-down/30 text-trading-down text-xs flex items-center justify-center gap-1.5 font-medium">
             <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         {confirmMutation.isPending && (
-          <div className="flex items-center justify-center gap-2 text-xs font-mono text-primary animate-pulse">
+          <div className="flex items-center justify-center gap-2 text-xs font-mono text-primary animate-pulse font-semibold">
             <CheckCircle2 className="w-4 h-4" /> Authorizing with Bank Switch...
           </div>
         )}
@@ -176,14 +175,14 @@ export const PinPadPage: React.FC = () => {
               type="button"
               onClick={() => handleKeyPress(digit)}
               disabled={confirmMutation.isPending || pin.length >= 4}
-              className="h-14 rounded-2xl bg-canvas border border-white/5 hover:border-primary/40 active:scale-95 text-bone font-mono text-2xl font-bold transition-all disabled:opacity-40"
+              className="h-14 rounded-xl bg-canvas border border-hairline-dark hover:border-primary active:bg-surface-elevated-dark text-on-dark font-mono text-2xl font-bold transition-all disabled:opacity-40"
             >
               {digit}
             </button>
           ))}
 
           {/* Bottom row: Blank, 0, Backspace */}
-          <div className="h-14 flex items-center justify-center text-xs font-mono text-bone-muted/40">
+          <div className="h-14 flex items-center justify-center text-xs font-mono text-muted/60">
             DEMO: 1234
           </div>
 
@@ -191,7 +190,7 @@ export const PinPadPage: React.FC = () => {
             type="button"
             onClick={() => handleKeyPress('0')}
             disabled={confirmMutation.isPending || pin.length >= 4}
-            className="h-14 rounded-2xl bg-canvas border border-white/5 hover:border-primary/40 active:scale-95 text-bone font-mono text-2xl font-bold transition-all disabled:opacity-40"
+            className="h-14 rounded-xl bg-canvas border border-hairline-dark hover:border-primary active:bg-surface-elevated-dark text-on-dark font-mono text-2xl font-bold transition-all disabled:opacity-40"
           >
             0
           </button>
@@ -200,7 +199,7 @@ export const PinPadPage: React.FC = () => {
             type="button"
             onClick={handleDelete}
             disabled={confirmMutation.isPending || pin.length === 0}
-            className="h-14 rounded-2xl bg-canvas border border-white/5 hover:border-white/20 active:scale-95 text-bone-muted hover:text-bone flex items-center justify-center transition-all disabled:opacity-30"
+            className="h-14 rounded-xl bg-canvas border border-hairline-dark hover:border-hairline-dark active:bg-surface-elevated-dark text-muted hover:text-white flex items-center justify-center transition-all disabled:opacity-30"
           >
             <Delete className="w-5 h-5" />
           </button>
@@ -208,4 +207,4 @@ export const PinPadPage: React.FC = () => {
       </div>
     </div>
   );
-};
+};
