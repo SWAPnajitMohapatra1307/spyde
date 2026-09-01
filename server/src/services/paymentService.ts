@@ -110,17 +110,79 @@ export async function initiatePayment(input: InitiatePaymentInput) {
 
   // ⚡ REDIS RISK CACHE CHECK (5 min TTL) ⚡
   const cacheKey = `risk:${normalizedVpa}`;
-  let risk: RiskAssessment | null = await redis.getJson<RiskAssessment>(cacheKey);
-
-  if (!risk) {
-    risk = await computeRisk(input.senderId, normalizedVpa, amountPaisa);
-    await redis.setJson(cacheKey, risk, 300);
+  const cachedRisk = await redis.getJson<RiskAssessment>(cacheKey);
+  
+  let activeRisk: RiskAssessment;
+  if (!cachedRisk) {
+    activeRisk = await computeRisk(input.senderId, normalizedVpa, amountPaisa);
+    await redis.setJson(cacheKey, activeRisk, 300);
     console.log(`[REDIS-RISK] Computed & cached risk score for VPA ${normalizedVpa}`);
   } else {
-    console.log(`[REDIS-RISK] Cache HIT for VPA ${normalizedVpa} (Score: ${risk.totalScore})`);
+    activeRisk = cachedRisk;
+    console.log(`[REDIS-RISK] Cache HIT for VPA ${normalizedVpa} (Score: ${activeRisk.totalScore})`);
   }
 
-  if (risk.verdict === RiskVerdict.BLOCK) {
+  // -------------------------------------------------------------
+  // 🛡️ DYNAMIC RULE 1: Fresh Account Check (Requires Liveness until 2 completed txns)
+  // -------------------------------------------------------------
+  const totalCompletedTxns = await prisma.simTransaction.count({
+    where: { receiverVpa: normalizedVpa, status: TransactionStatus.SUCCESS },
+  });
+
+  // Account is considered fresh ONLY if it has completed fewer than 2 transactions
+  const isFreshAccount = totalCompletedTxns < 2;
+
+  if (isFreshAccount && activeRisk.verdict !== RiskVerdict.BLOCK) {
+    console.log(`[RISK-RULE] VPA ${normalizedVpa} is fresh (${totalCompletedTxns} completed) -> Triggering LIVENESS CHALLENGE`);
+    activeRisk = { ...activeRisk, verdict: RiskVerdict.CHALLENGE };
+  } else if (!isFreshAccount && activeRisk.verdict === RiskVerdict.CHALLENGE) {
+    // Once 2 transactions are complete, relax Liveness Challenge
+    activeRisk = { ...activeRisk, verdict: RiskVerdict.PASS };
+  }
+
+  // -------------------------------------------------------------
+  // 🛡️ DYNAMIC RULE 2: Frequent Payment Velocity Check (Triggers WARN)
+  // -------------------------------------------------------------
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const recentPaymentCount = await prisma.simTransaction.count({
+    where: {
+      senderId: input.senderId,
+      receiverVpa: normalizedVpa,
+      createdAt: { gte: oneHourAgo },
+    },
+  });
+
+  // If paid >= 2 times in the last hour and account is no longer fresh -> Trigger WARN
+  if (recentPaymentCount >= 2 && !isFreshAccount && activeRisk.verdict !== RiskVerdict.BLOCK) {
+    console.log(`[RISK-RULE] High frequency payments to ${normalizedVpa} (${recentPaymentCount} in 1h) -> Triggering WARN`);
+    activeRisk = { ...activeRisk, verdict: RiskVerdict.WARN };
+  }
+
+  // -------------------------------------------------------------
+  // 🟢 SAFE CIRCLE OVERRIDE: Bypass WARN & CHALLENGE if trusted
+  // -------------------------------------------------------------
+  const safeContact = await prisma.safeCircleContact.findFirst({
+    where: {
+      userId: input.senderId,
+      contactVpa: normalizedVpa,
+    },
+  });
+
+  if (
+    safeContact &&
+    (activeRisk.verdict === RiskVerdict.WARN || activeRisk.verdict === RiskVerdict.CHALLENGE)
+  ) {
+    console.log(
+      `[SAFE_CIRCLE] ${normalizedVpa} is in Safe Circle for user ${input.senderId} — ` +
+        `Overriding ${activeRisk.verdict} → PASS`
+    );
+    activeRisk = { ...activeRisk, verdict: RiskVerdict.PASS };
+  }
+
+  // -------------------------------------------------------------
+  // 🛑 HARD BLOCK (Cannot be bypassed)
+  // -------------------------------------------------------------
+  if (activeRisk.verdict === RiskVerdict.BLOCK) {
     const blockedTxn = await prisma.simTransaction.create({
       data: {
         senderId: input.senderId,
@@ -130,24 +192,27 @@ export async function initiatePayment(input: InitiatePaymentInput) {
         note: input.note || null,
         status: TransactionStatus.BLOCKED,
         riskVerdict: RiskVerdict.BLOCK,
-        riskScore: risk.totalScore,
-        riskSignals: JSON.stringify(risk.signals),
+        riskScore: activeRisk.totalScore,
+        riskSignals: JSON.stringify(activeRisk.signals),
         idempotencyKey: input.idempotencyKey || null,
       },
     });
 
-    console.warn('[SECURITY] Transaction blocked by Risk Engine: txnId=' + blockedTxn.id + ' score=' + risk.totalScore);
+    console.warn('[SECURITY] Transaction blocked by Risk Engine: txnId=' + blockedTxn.id + ' score=' + activeRisk.totalScore);
 
     return {
       transactionId: blockedTxn.id,
       status: TransactionStatus.BLOCKED,
       verdict: RiskVerdict.BLOCK,
-      riskScore: risk.totalScore,
-      signals: risk.signals,
+      riskScore: activeRisk.totalScore,
+      signals: activeRisk.signals,
       amountRupees: input.amountRupees,
     };
   }
 
+  // -------------------------------------------------------------
+  // ✅ CREATE TRANSACTION
+  // -------------------------------------------------------------
   const txn = await prisma.simTransaction.create({
     data: {
       senderId: input.senderId,
@@ -156,16 +221,18 @@ export async function initiatePayment(input: InitiatePaymentInput) {
       amountPaisa,
       note: input.note || null,
       status: TransactionStatus.PENDING,
-      riskVerdict: risk.verdict,
-      riskScore: risk.totalScore,
-      riskSignals: JSON.stringify(risk.signals),
+      riskVerdict: activeRisk.verdict,
+      riskScore: activeRisk.totalScore,
+      riskSignals: JSON.stringify(activeRisk.signals),
       idempotencyKey: input.idempotencyKey || null,
     },
   });
 
+  // -------------------------------------------------------------
+  // 📷 LIVENESS ESCROW SESSION
+  // -------------------------------------------------------------
   let challengeSessionId: string | null = null;
-  if (risk.verdict === RiskVerdict.CHALLENGE) {
-    // ⚡ CRITICAL P0 FIX: Removed sha256() hashing so client verification perfectly aligns
+  if (activeRisk.verdict === RiskVerdict.CHALLENGE) {
     const challengeCode = generateNumericCode(4);
     const expiresAt = new Date(Date.now() + ESCROW_HOLD_SECONDS * 1000);
 
@@ -197,7 +264,7 @@ export async function initiatePayment(input: InitiatePaymentInput) {
     status: txn.status,
     verdict: txn.riskVerdict,
     riskScore: txn.riskScore,
-    signals: risk.signals,
+    signals: activeRisk.signals,
     amountRupees: input.amountRupees,
     challengeSessionId,
   };

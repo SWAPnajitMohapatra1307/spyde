@@ -16,10 +16,25 @@ interface InitiatePaymentPayload {
 }
 
 interface InitiatePaymentResponse {
-  transactionId: string;
+  transactionId?: string;
+  txnId?: string;
+  id?: string;
   verdict: PaymentVerdict;
   signals?: PaymentSignal[];
   riskScore?: number;
+  // Liveness / escrow session ids (support all naming conventions)
+  challengeSessionId?: string | null;
+  livenessSessionId?: string | null;
+  challengeId?: string | null;
+  sessionId?: string | null;
+  escrowSessionId?: string | null;
+  livenessChallengeId?: string | null;
+  // Code aliases (4-digit escrow code)
+  challengeCode?: string | null;
+  code?: string | null;
+  escrowCode?: string | null;
+  livenessCode?: string | null;
+  otp?: string | null;
 }
 
 function routeForVerdict(verdict: PaymentVerdict): { step: PaymentStep; path: string } {
@@ -35,6 +50,34 @@ function routeForVerdict(verdict: PaymentVerdict): { step: PaymentStep; path: st
     default:
       return { step: 'PIN_ENTRY', path: '/payment/pin' };
   }
+}
+
+function extractLivenessSessionId(data: InitiatePaymentResponse): string | null {
+  const raw =
+    data.livenessSessionId ||
+    data.challengeSessionId ||
+    data.challengeId ||
+    data.livenessChallengeId ||
+    data.sessionId ||
+    data.escrowSessionId ||
+    null;
+  return raw ? String(raw) : null;
+}
+
+function extractTransactionId(data: InitiatePaymentResponse): string {
+  return String(data.transactionId || data.txnId || data.id || '');
+}
+
+function extractChallengeCode(data: InitiatePaymentResponse): string | null {
+  const raw =
+    data.challengeCode ??
+    data.code ??
+    data.escrowCode ??
+    data.livenessCode ??
+    data.otp ??
+    '';
+  const digits = String(raw).replace(/\D/g, '').slice(0, 4);
+  return /^\d{4}$/.test(digits) ? digits : null;
 }
 
 export const ConfirmPaymentPage: React.FC = () => {
@@ -54,15 +97,32 @@ export const ConfirmPaymentPage: React.FC = () => {
   const initiateMutation = useMutation({
     mutationFn: async (payload: InitiatePaymentPayload): Promise<InitiatePaymentResponse> => {
       const response = await apiClient.post<any>('/api/payment/initiate', payload);
-      return response.data?.data || response.data;
+      const body = response.data?.data ?? response.data;
+      return body?.data ?? body;
     },
     onSuccess: (data) => {
-      const { step, path } = routeForVerdict(data.verdict);
+      const verdict = (data.verdict || 'PASS') as PaymentVerdict;
+      const { step, path } = routeForVerdict(verdict);
 
-      // Atomic store write — step + transaction in one tick
+      const txnId = extractTransactionId(data);
+      const livenessSessionId = extractLivenessSessionId(data);
+      const challengeCode = extractChallengeCode(data);
+      const challengeSessionId = livenessSessionId || txnId || null;
+
+      console.log('[ConfirmPayment] initiate success', {
+        verdict,
+        txnId,
+        challengeSessionId,
+        challengeCode,
+        rawKeys: data && typeof data === 'object' ? Object.keys(data) : [],
+        raw: data,
+      });
+
       usePaymentStore.setState({
-        transactionId: data.transactionId,
-        verdict: data.verdict,
+        transactionId: txnId || paymentState.transactionId,
+        challengeSessionId,
+        challengeCode,
+        verdict,
         signals: data.signals || [],
         riskScore:
           typeof data.riskScore === 'number' ? data.riskScore : (currentRiskScore ?? 0),
@@ -213,4 +273,4 @@ export const ConfirmPaymentPage: React.FC = () => {
       </div>
     </div>
   );
-};
+};

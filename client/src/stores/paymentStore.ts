@@ -29,6 +29,7 @@ export interface PaymentState {
   note: string;
   transactionId: string | null;
   challengeSessionId: string | null;
+  challengeCode: string | null;
   verdict: PaymentVerdict | null;
   riskScore: number | null;
   signals: PaymentSignal[];
@@ -50,12 +51,14 @@ export interface PaymentState {
   }) => void;
   setTransactionId: (transactionId: string) => void;
   setChallengeSessionId: (challengeSessionId: string | null) => void;
+  setChallengeCode: (challengeCode: string | null) => void;
   setTransaction: (data: {
     transactionId: string;
     verdict: PaymentVerdict;
     signals?: PaymentSignal[];
     riskScore?: number;
     challengeSessionId?: string | null;
+    challengeCode?: string | null;
   }) => void;
   setVerdict: (verdict: PaymentVerdict, signals?: PaymentSignal[], riskScore?: number) => void;
   setPin: (pin: string) => void;
@@ -74,6 +77,7 @@ const initialState = {
   note: '',
   transactionId: null,
   challengeSessionId: null,
+  challengeCode: null,
   verdict: null,
   riskScore: null,
   signals: [],
@@ -101,14 +105,16 @@ export const usePaymentStore = create<PaymentState>((set) => ({
 
   setTransactionId: (transactionId) => set({ transactionId }),
   setChallengeSessionId: (challengeSessionId) => set({ challengeSessionId }),
+  setChallengeCode: (challengeCode) => set({ challengeCode }),
 
-  setTransaction: ({ transactionId, verdict, signals = [], riskScore, challengeSessionId }) =>
+  setTransaction: ({ transactionId, verdict, signals = [], riskScore, challengeSessionId, challengeCode }) =>
     set((state) => ({
       transactionId,
       verdict,
       signals,
       riskScore: typeof riskScore === 'number' ? riskScore : state.riskScore,
       challengeSessionId: challengeSessionId ?? state.challengeSessionId,
+      challengeCode: challengeCode ?? state.challengeCode,
     })),
 
   setVerdict: (verdict, signals = [], riskScore) =>

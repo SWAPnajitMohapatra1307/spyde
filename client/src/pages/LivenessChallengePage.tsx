@@ -1,347 +1,489 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 import {
-  ShieldCheck,
-  Camera,
-  AlertTriangle,
-  RefreshCw,
-  CheckCircle2,
-  ArrowRight,
-  Eye,
-  UserX,
-} from 'lucide-react';
-import { ChallengeDirector } from '@/components/cv/ChallengeDirector';
-import { useCamera } from '@/hooks/useCamera';
-import { useCVStore } from '@/stores/cvStore';
-import { apiClient } from '@/lib/apiClient';
-import type { FaceQualityMetrics } from '@/types/cv';
+  LivenessEngine,
+  type LivenessState,
+  type LivenessStep,
+} from '../lib/livenessEngine';
+import { usePaymentStore } from '../stores/paymentStore';
 
-export const LivenessChallengePage: React.FC = () => {
-  const { sessionId } = useParams<{ sessionId: string }>();
-  const navigate = useNavigate();
-  const { videoRef, canvasRef, start, stop, isActive } = useCamera({ autoStart: true });
-  const { error, setError, setSessionConfig, setFaceDetection } = useCVStore();
+type UiPhase = 'ENGINE' | 'CONSENT' | 'UPLOADING' | 'COMPLETE' | 'FAIL';
 
-  const [step, setStep] = useState<
-    'INITIALIZING' | 'CHALLENGE' | 'CONSENT' | 'PROCESSING' | 'SUCCESS' | 'FAILED'
-  >('INITIALIZING');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [stepProgress, setStepProgress] = useState(20);
-  const [consentGiven, setConsentGiven] = useState<boolean | null>(null);
-  const [capturedFaceFrame, setCapturedFaceFrame] = useState<string | null>(null);
+const STEP_INSTRUCTIONS: Record<LivenessStep, string> = {
+  LOADING_MODELS: 'Loading AI models…',
+  DETECT_FACE: 'Position your face in the oval',
+  BLINK_LEFT: 'Blink your LEFT eye 👁️',
+  BLINK_RIGHT: 'Blink your RIGHT eye 👁️',
+  TURN_HEAD: 'Slowly turn your head left or right',
+  HOLD_STILL: 'Hold still… capturing',
+  PROCESSING: 'Verifying liveness…',
+  PASS: '✅ Liveness verified!',
+  FAIL: '❌ Verification failed — try again',
+};
 
-  useEffect(() => {
-    setSessionConfig({
-      sessionId: sessionId || 'demo-session',
-      challenges: [
-        {
-          id: 'c1',
-          type: 'turn_left',
-          instruction: 'Turn head slowly to the left',
-          duration: 6,
-          requiredConfidence: 0.8,
-        },
-        {
-          id: 'c2',
-          type: 'blink',
-          instruction: 'Blink eyes naturally',
-          duration: 6,
-          requiredConfidence: 0.8,
-        },
-        {
-          id: 'c3',
-          type: 'smile',
-          instruction: 'Smile at the camera',
-          duration: 6,
-          requiredConfidence: 0.8,
-        },
-      ],
-      timeoutSeconds: 60,
-      maxAttempts: 3,
-      antiSpoofEnabled: true,
-      minFaceSize: 0.2,
-      maxFaceAngle: 30,
-    });
-  }, [sessionId, setSessionConfig]);
+const STEP_ORDER: LivenessStep[] = [
+  'DETECT_FACE',
+  'BLINK_LEFT',
+  'BLINK_RIGHT',
+  'TURN_HEAD',
+  'HOLD_STILL',
+];
 
-  useEffect(() => {
-    if (!isActive) return;
+export function LivenessChallengePage() {
+  const { sessionId: sessionIdFromUrl } = useParams<{ sessionId?: string }>();
+  const [searchParams] = useSearchParams();
+  const codeFromUrl = searchParams.get('code');
 
-    setStep('CHALLENGE');
-    setStepProgress(40);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const engineRef = useRef<LivenessEngine | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const capturedBlobRef = useRef<string | null>(null);
+  const capturedScoreRef = useRef<number>(0);
+  const capturedMetricsRef = useRef<any>(null);
 
-    const timer = setTimeout(() => {
-      setFaceDetection(
-        true,
-        { x: 100, y: 100, width: 200, height: 200, confidence: 0.98 },
-        {
-          quality: 'good',
-          brightness: 80,
-          sharpness: 80,
-          faceAngle: 0,
-        } as unknown as FaceQualityMetrics
-      );
-    }, 800);
+  const [state, setState] = useState<LivenessState>({
+    step: 'LOADING_MODELS',
+    faceDetected: false,
+    earLeft: 1,
+    earRight: 1,
+    blinkCountLeft: 0,
+    blinkCountRight: 0,
+    headYaw: 0,
+    headTurned: false,
+    stabilityFrames: 0,
+    livenessScore: 0,
+    error: null,
+  });
 
-    return () => clearTimeout(timer);
-  }, [isActive, setFaceDetection]);
+  const [uiPhase, setUiPhase] = useState<UiPhase>('ENGINE');
+  const [cameraReady, setCameraReady] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [consentChoice, setConsentChoice] = useState<'pending' | 'allow' | 'decline'>('pending');
 
-  const captureFaceFrame = (): string | null => {
-    const video = videoRef.current;
-    if (!video || !video.videoWidth) return null;
-    try {
-      const canvas = document.createElement('canvas');
-      canvas.width = 300;
-      canvas.height = 300;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return null;
+  const storeSessionId = usePaymentStore((s) => s.challengeSessionId);
+  const activeSessionId = sessionIdFromUrl || storeSessionId || 'demo-session';
 
-      const minDim = Math.min(video.videoWidth, video.videoHeight);
-      const startX = (video.videoWidth - minDim) / 2;
-      const startY = (video.videoHeight - minDim) / 2;
+  const stopCamera = () => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+  };
 
-      ctx.drawImage(video, startX, startY, minDim, minDim, 0, 0, 300, 300);
-      return canvas.toDataURL('image/jpeg', 0.85);
-    } catch {
-      return null;
+  const startCamera = async () => {
+    setCameraError(null);
+    setCameraReady(false);
+    setUiPhase('ENGINE');
+    setConsentChoice('pending');
+    capturedBlobRef.current = null;
+    setState((s) => ({
+      ...s,
+      error: null,
+      step: 'LOADING_MODELS',
+      faceDetected: false,
+      blinkCountLeft: 0,
+      blinkCountRight: 0,
+      headYaw: 0,
+      headTurned: false,
+      stabilityFrames: 0,
+      livenessScore: 0,
+    }));
+
+    if (!window.isSecureContext) {
+      const msg =
+        'Camera requires HTTPS or localhost. Open http://localhost:5173 (not a LAN IP).';
+      setCameraError(msg);
+      setUiPhase('FAIL');
+      setState((s) => ({ ...s, error: msg, step: 'FAIL' }));
+      return;
     }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      const msg = 'This browser does not support camera access.';
+      setCameraError(msg);
+      setUiPhase('FAIL');
+      setState((s) => ({ ...s, error: msg, step: 'FAIL' }));
+      return;
+    }
+
+    stopCamera();
+    engineRef.current?.stop();
+    engineRef.current = null;
+
+    const attempts: MediaStreamConstraints[] = [
+      {
+        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 640 } },
+        audio: false,
+      },
+      { video: { facingMode: 'user' }, audio: false },
+      { video: true, audio: false },
+    ];
+
+    let lastErr: unknown = null;
+
+    for (const constraints of attempts) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.muted = true;
+          await videoRef.current.play();
+        }
+        setCameraReady(true);
+        setCameraError(null);
+        setState((s) => ({ ...s, step: 'DETECT_FACE', error: null }));
+        return;
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+
+    const e = lastErr as { name?: string; message?: string } | null;
+    const name = e?.name || 'Error';
+    let msg = 'Camera access denied or unavailable';
+    if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+      msg = 'Camera permission denied. Click the lock icon → Allow Camera → Retry.';
+    } else if (name === 'NotFoundError') {
+      msg = 'No camera found on this device.';
+    } else if (name === 'NotReadableError' || name === 'TrackStartError') {
+      msg = 'Camera is in use by another app/tab. Close it and Retry.';
+    } else if (e?.message) {
+      msg = `${name}: ${e.message}`;
+    }
+
+    setCameraError(msg);
+    setUiPhase('FAIL');
+    setState((s) => ({ ...s, error: msg, step: 'FAIL' }));
   };
 
-  const handleAllChallengesComplete = () => {
-    const frame = captureFaceFrame();
-    if (frame) setCapturedFaceFrame(frame);
-    stop();
-    setStep('CONSENT');
-    setStepProgress(70);
-  };
+  useEffect(() => {
+    void startCamera();
+    return () => {
+      stopCamera();
+      engineRef.current?.stop();
+      engineRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const submitVerification = async (didConsent: boolean) => {
-    setConsentGiven(didConsent);
-    setStep('PROCESSING');
-    setStepProgress(85);
+  useEffect(() => {
+    if (!cameraReady || !videoRef.current || uiPhase !== 'ENGINE') return;
 
-    const activeSessionId = sessionId || 'demo-session';
+    const engine = new LivenessEngine(videoRef.current, setState);
+    engineRef.current = engine;
+    void engine.start();
+
+    return () => {
+      engine.stop();
+      if (engineRef.current === engine) engineRef.current = null;
+    };
+  }, [cameraReady, uiPhase]);
+
+  useEffect(() => {
+    if (uiPhase !== 'ENGINE') return;
+    if (state.step !== 'PROCESSING') return;
+
+    const engine = engineRef.current;
+    if (!engine) return;
+
+    const result = engine.getResult();
+    engine.stop();
+    engineRef.current = null;
+
+    if (!result.passed || !result.faceBlob) {
+      setUiPhase('FAIL');
+      setState((s) => ({
+        ...s,
+        step: 'FAIL',
+        error: 'Liveness score too low or face capture failed. Please retry.',
+      }));
+      stopCamera();
+      return;
+    }
+
+    capturedBlobRef.current = result.faceBlob;
+    capturedScoreRef.current = result.score;
+    capturedMetricsRef.current = result.metrics;
+
+    stopCamera();
+    setState((s) => ({ ...s, step: 'PASS', livenessScore: result.score }));
+    setUiPhase('CONSENT');
+  }, [state.step, uiPhase]);
+
+  const submitToServer = async (shareFace: boolean) => {
+    setConsentChoice(shareFace ? 'allow' : 'decline');
+    setUiPhase('UPLOADING');
+
+    const challengeId = activeSessionId;
+    const score = Math.max(
+      0,
+      Math.min(100, Math.round(Number(capturedScoreRef.current || state.livenessScore || 100)))
+    );
+    const metrics = capturedMetricsRef.current || {
+      blinksDetected: 2,
+      headTurnDegrees: 0,
+      stabilityFrames: 0,
+      onnxScore: null,
+    };
+    const faceBlob = capturedBlobRef.current;
 
     try {
-      if (didConsent && capturedFaceFrame) {
-        try {
-          await apiClient.post('/api/certificates/face-blob', {
-            sessionId: activeSessionId,
-            imageData: capturedFaceFrame,
-          });
-        } catch {
-          // optional endpoint shape may differ
-        }
+      if (shareFace && faceBlob) {
+        await fetch('/api/certificates/face-blob', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            challengeSessionId: challengeId,
+            faceBlob,
+            livenessScore: score,
+            metrics,
+          }),
+        });
       }
 
-      let challengeCode = '1234';
+      const embeddingSource =
+        (faceBlob || `${challengeId}:${score}:${metrics.blinksDetected}`).slice(0, 8000);
+
+      let faceEmbeddingHash: string;
       try {
-        const statusRes = await apiClient.get<{
-          success: boolean;
-          data: { challengeCode?: string };
-        }>(`/api/liveness/status/${activeSessionId}`);
-        if (statusRes.data?.data?.challengeCode) {
-          challengeCode = statusRes.data.data.challengeCode;
-        }
+        const buf = new TextEncoder().encode(embeddingSource);
+        const digest = await crypto.subtle.digest('SHA-256', buf);
+        faceEmbeddingHash = Array.from(new Uint8Array(digest))
+          .map((b) => b.toString(16).padStart(2, '0'))
+          .join('');
       } catch {
-        // demo fallback
+        faceEmbeddingHash = 'ab'.repeat(32);
       }
 
-      await apiClient.post('/api/liveness/verify', {
-        challengeId: activeSessionId,
+      const store = usePaymentStore.getState();
+      const codeCandidate =
+        codeFromUrl ||
+        store.challengeCode ||
+        '';
+      let challengeCode = String(codeCandidate).replace(/\D/g, '').slice(0, 4);
+      if (!/^\d{4}$/.test(challengeCode)) {
+        challengeCode = '0000';
+      }
+
+      const verifyBody = {
+        challengeId: String(challengeId),
         challengeCode,
-        clientScore: 85,
-        blinkCount: 2,
-        faceEmbeddingHash: didConsent
-          ? 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
-          : 'no_consent_' +
-            'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'.slice(0, 55),
+        clientScore: score,
+        blinkCount: Math.max(0, Math.round(Number(metrics.blinksDetected ?? 2))),
+        faceEmbeddingHash,
+      };
+
+      console.log('[Liveness] verify body', verifyBody);
+
+      const verifyRes = await fetch('/api/liveness/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(verifyBody),
       });
 
-      setStep('SUCCESS');
-      setStepProgress(100);
-    } catch (err: any) {
-      setStep('FAILED');
-      setErrorMessage(
-        err?.response?.data?.error?.message ||
-          err?.response?.data?.message ||
-          'Biometric verification payload rejected'
-      );
+      if (!verifyRes.ok) {
+        const errText = await verifyRes.text();
+        console.warn('[Liveness] verify failed:', verifyRes.status, errText);
+        setUiPhase('FAIL');
+        setState((s) => ({
+          ...s,
+          step: 'FAIL',
+          error: 'Could not notify sender. Check connection and retry.',
+        }));
+        return;
+      }
+
+      setUiPhase('COMPLETE');
+    } catch (err) {
+      console.warn('[Liveness] submit failed', err);
+      setUiPhase('FAIL');
+      setState((s) => ({
+        ...s,
+        step: 'FAIL',
+        error: 'Network error while completing verification.',
+      }));
     }
   };
 
-  const handleRestart = async () => {
-    setError(null);
-    setErrorMessage(null);
-    setConsentGiven(null);
-    setCapturedFaceFrame(null);
-    setStep('INITIALIZING');
-    await start();
-  };
+  const currentStepIdx = STEP_ORDER.indexOf(state.step);
+  const progress =
+    uiPhase === 'CONSENT' || uiPhase === 'UPLOADING' || uiPhase === 'COMPLETE'
+      ? 100
+      : state.step === 'PROCESSING' || state.step === 'PASS'
+        ? 100
+        : Math.max(0, (currentStepIdx / STEP_ORDER.length) * 100);
 
-  const showCamera =
-    step === 'INITIALIZING' || step === 'CHALLENGE' || step === 'PROCESSING';
+  const showCamera = uiPhase === 'ENGINE' && !['PASS', 'FAIL', 'PROCESSING'].includes(state.step);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between p-4 max-w-md mx-auto">
-      <div className="text-center space-y-1 py-3">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-mono font-semibold">
-          <ShieldCheck className="w-4 h-4" />
-          <span>SPYDE Biometric Escrow Release</span>
+    <div className="min-h-screen bg-surface-dark flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-sm mb-6 text-center">
+        <h1 className="text-2xl font-bold text-on-dark mb-1">Liveness Verification</h1>
+        <p className="text-sm text-on-dark/60">
+          Receiver biometric check · unlocks sender PIN
+        </p>
+        <p className="text-[10px] font-mono text-on-dark/40 mt-1 truncate">
+          session: {activeSessionId}
+        </p>
+      </div>
+
+      <div className="w-full max-w-sm mb-4">
+        <div className="h-2 bg-surface-card-dark rounded-full overflow-hidden border border-white/5">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${progress}%`,
+              backgroundColor: progress >= 100 ? '#10b981' : '#3b82f6',
+            }}
+          />
         </div>
-        <h1 className="text-lg font-bold text-on-dark font-sans">Face Liveness Verification</h1>
       </div>
 
       {showCamera && (
-        <div className="relative w-[270px] h-[280px] mx-auto rounded-full overflow-hidden border-4 border-orange-500/40 shadow-2xl bg-slate-900 flex items-center justify-center my-2">
+        <div className="relative w-72 h-72 rounded-full overflow-hidden border-4 border-white/20 mb-6 shadow-2xl bg-black">
           <video
             ref={videoRef}
+            autoPlay
             playsInline
             muted
-            className="w-full h-full object-cover -scale-x-100"
+            className="w-full h-full object-cover scale-x-[-1]"
           />
-          <canvas ref={canvasRef} className="hidden" />
-
-          {!isActive && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 text-center p-4 space-y-3">
-              <Camera className="w-10 h-10 text-slate-500 animate-pulse" />
-              <p className="text-xs text-slate-400">Initializing camera feed...</p>
-            </div>
-          )}
-
-          {error && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-950/90 text-center p-4 space-y-2 z-10">
-              <AlertTriangle className="w-8 h-8 text-red-400" />
-              <p className="text-xs text-slate-200 font-semibold">{error.message}</p>
-              <button
-                onClick={handleRestart}
-                className="mt-2 px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg"
-              >
-                Retry Camera
-              </button>
+          <div className="absolute inset-0 rounded-full border-4 border-blue-400/40 pointer-events-none" />
+          {state.faceDetected && (
+            <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-500/40">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-ping" />
+              <span className="text-[10px] font-mono text-emerald-400 uppercase font-semibold">
+                Face Tracked
+              </span>
             </div>
           )}
         </div>
       )}
 
-      <div className="my-2">
-        {step === 'CHALLENGE' && isActive && (
-          <ChallengeDirector onAllComplete={handleAllChallengesComplete} />
-        )}
+      {uiPhase === 'ENGINE' && state.step === 'PROCESSING' && (
+        <div className="w-72 h-72 rounded-full bg-surface-card-dark flex items-center justify-center mb-6 border-4 border-blue-500/50">
+          <div className="text-center p-4">
+            <div className="w-14 h-14 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-on-dark text-sm">Analyzing liveness…</p>
+          </div>
+        </div>
+      )}
 
-        {step === 'CONSENT' && (
-          <div className="bg-slate-900 border border-orange-500/30 rounded-2xl p-5 space-y-4 shadow-xl">
-            <div className="flex items-center justify-center gap-2 text-emerald-400 font-bold text-sm">
-              <CheckCircle2 className="w-5 h-5" /> Liveness Verified!
+      {uiPhase === 'CONSENT' && (
+        <div className="w-full max-w-sm bg-surface-card-dark border border-hairline-dark rounded-2xl p-6 mb-6 space-y-4">
+          <div className="text-center">
+            <div className="text-4xl mb-2">✅</div>
+            <h2 className="text-lg font-bold text-on-dark">Liveness passed</h2>
+            <p className="text-xs text-on-dark/60 mt-1">
+              Score {capturedScoreRef.current || state.livenessScore}/100
+            </p>
+          </div>
+
+          {capturedBlobRef.current && (
+            <div className="w-28 h-28 mx-auto rounded-full overflow-hidden border-2 border-primary/50">
+              <img
+                src={capturedBlobRef.current}
+                alt="Your capture"
+                className="w-full h-full object-cover scale-x-[-1]"
+              />
             </div>
+          )}
 
-            <div className="border-t border-white/10 pt-3 space-y-3">
-              <div className="flex items-center gap-2">
-                <Eye className="w-5 h-5 text-orange-400" />
-                <h2 className="text-white font-bold text-sm">Optional: Share Biometric Proof</h2>
+          <div className="rounded-xl bg-canvas/50 border border-hairline-dark p-3 text-xs text-on-dark/70 leading-relaxed">
+            <p className="font-semibold text-on-dark mb-1">Share this photo with the sender?</p>
+            <p>
+              If you allow, the sender can view your face once (view-once) as proof you completed
+              verification. You can decline and still unlock the payment — only liveness is required.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => void submitToServer(true)}
+            className="w-full py-3 rounded-xl bg-primary text-canvas text-sm font-bold"
+          >
+            Allow — share photo with sender
+          </button>
+          <button
+            type="button"
+            onClick={() => void submitToServer(false)}
+            className="w-full py-3 rounded-xl bg-surface-elevated-dark border border-hairline-dark text-on-dark text-sm font-semibold"
+          >
+            Decline — verify without sharing photo
+          </button>
+        </div>
+      )}
+
+      {uiPhase === 'UPLOADING' && (
+        <div className="w-full max-w-sm text-center mb-6 space-y-3">
+          <div className="w-14 h-14 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-on-dark text-sm font-medium">
+            {consentChoice === 'allow'
+              ? 'Sharing securely & notifying sender…'
+              : 'Notifying sender — verification complete…'}
+          </p>
+        </div>
+      )}
+
+      {uiPhase === 'COMPLETE' && (
+        <div className="w-full max-w-sm bg-emerald-950/30 border border-emerald-500/40 rounded-2xl p-6 mb-6 text-center space-y-3">
+          <div className="text-5xl">✅</div>
+          <h2 className="text-xl font-bold text-emerald-400">Verification complete</h2>
+          <p className="text-sm text-on-dark/70">
+            {consentChoice === 'allow'
+              ? 'You shared a view-once photo. The sender can now enter their UPI PIN.'
+              : 'Liveness verified without sharing a photo. The sender can now enter their UPI PIN.'}
+          </p>
+          <p className="text-[11px] font-mono text-on-dark/40">
+            You can close this page. Sender device will unlock automatically.
+          </p>
+        </div>
+      )}
+
+      {uiPhase === 'FAIL' && (
+        <div className="w-72 rounded-2xl bg-red-950/40 border border-red-500 p-6 mb-6 text-center">
+          <div className="text-5xl mb-2">❌</div>
+          <p className="text-red-400 font-bold mb-3">Verification failed</p>
+          <button
+            type="button"
+            onClick={() => void startCamera()}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-semibold uppercase"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {uiPhase === 'ENGINE' && (
+        <div className="text-center max-w-sm">
+          <p className="text-lg font-semibold text-on-dark mb-2">
+            {STEP_INSTRUCTIONS[state.step]}
+          </p>
+          {state.faceDetected &&
+            state.step !== 'PROCESSING' &&
+            state.step !== 'PASS' &&
+            state.step !== 'FAIL' && (
+              <div className="grid grid-cols-3 gap-2 mt-4 text-xs bg-surface-card-dark/80 p-2.5 rounded-xl border border-white/5">
+                <div>
+                  <div className="text-on-dark font-mono">{state.earLeft.toFixed(2)}</div>
+                  <div className="text-on-dark/40 text-[10px]">Left EAR</div>
+                </div>
+                <div>
+                  <div className="text-on-dark font-mono">{state.earRight.toFixed(2)}</div>
+                  <div className="text-on-dark/40 text-[10px]">Right EAR</div>
+                </div>
+                <div>
+                  <div className="text-on-dark font-mono">{Math.abs(state.headYaw).toFixed(0)}°</div>
+                  <div className="text-on-dark/40 text-[10px]">Yaw</div>
+                </div>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                You can share a one-time view of your face with the sender to boost transaction
-                trust.
-              </p>
-              <ul className="text-[11px] text-slate-500 space-y-1.5 pl-1">
-                <li className="flex items-start gap-2">
-                  <span className="text-emerald-400">✓</span>
-                  <span>
-                    Sender views it <strong>ONCE</strong> for exactly 10 seconds
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-emerald-400">✓</span>
-                  <span>Encrypted end-to-end with AES-256-GCM</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-emerald-400">✓</span>
-                  <span>Auto-destroyed forever after viewing (DPDP Act compliant)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-emerald-400">✓</span>
-                  <span>Payment proceeds regardless of your choice</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={() => submitVerification(false)}
-                className="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold border border-slate-700 transition-colors flex items-center justify-center gap-1.5"
-              >
-                <UserX className="w-4 h-4" /> Decline
-              </button>
-              <button
-                onClick={() => submitVerification(true)}
-                className="flex-1 py-3 rounded-xl bg-orange-500 hover:bg-orange-400 text-slate-950 text-xs font-bold shadow-lg transition-colors flex items-center justify-center gap-1.5"
-              >
-                <Eye className="w-4 h-4" /> Share Proof
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 'PROCESSING' && (
-          <div className="text-center space-y-2 py-4">
-            <RefreshCw className="w-8 h-8 text-orange-500 animate-spin mx-auto" />
-            <p className="text-xs font-mono text-orange-400 font-bold">
-              {consentGiven
-                ? 'Encrypting face blob & computing ZK proof...'
-                : 'Computing ZK Vector Proof...'}
-            </p>
-          </div>
-        )}
-
-        {step === 'SUCCESS' && (
-          <div className="bg-surface-card-dark border border-trading-up/30 rounded-xl p-5 text-center space-y-3 shadow-xl">
-            <div className="flex items-center justify-center gap-2 text-trading-up font-bold text-sm">
-              <CheckCircle2 className="w-5 h-5" /> Biometric Verification Complete
-            </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              {consentGiven
-                ? 'Face proof encrypted & escrow released. Sender can view once for 10s.'
-                : 'Escrow released. No face proof shared with sender.'}
-            </p>
-            <button
-              onClick={() => navigate('/')}
-              className="w-full py-3 rounded-md bg-trading-up text-on-dark font-semibold text-xs flex items-center justify-center gap-2 shadow-md hover:opacity-90 transition-all"
-            >
-              <span>Done / Close</span>
-              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-            </button>
-          </div>
-        )}
-
-        {step === 'FAILED' && (
-          <div className="text-center space-y-3 py-2">
-            <div className="text-xs font-bold text-trading-down flex items-center justify-center gap-1.5 font-sans">
-              <AlertTriangle className="w-4 h-4" />
-              <span>{errorMessage || 'Verification unconfirmed'}</span>
-            </div>
-            <button
-              onClick={handleRestart}
-              className="px-4 py-2 rounded-md bg-surface-card-dark hover:bg-surface-elevated-dark border border-hairline-dark text-on-dark text-xs font-semibold font-mono transition-colors inline-flex items-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4 text-primary" /> Retry Challenge
-            </button>
-          </div>
-        )}
-      </div>
-
-      <div className="max-w-[320px] mx-auto w-full space-y-1.5 pb-2">
-        <div className="flex items-center justify-between text-[11px] font-mono text-muted">
-          <span>Verification Progress</span>
-          <span className="font-bold text-on-dark">{stepProgress}%</span>
+            )}
         </div>
-        <div className="h-2 w-full bg-surface-elevated-dark rounded-full overflow-hidden border border-hairline-dark">
-          <div
-            className="h-full bg-primary transition-all duration-500 rounded-full"
-            style={{ width: `${stepProgress}%` }}
-          />
-        </div>
-      </div>
+      )}
+
+      {(cameraError || state.error) && uiPhase === 'FAIL' && (
+        <p className="mt-2 text-red-400 text-xs max-w-sm text-center">{cameraError || state.error}</p>
+      )}
     </div>
   );
-};
+}

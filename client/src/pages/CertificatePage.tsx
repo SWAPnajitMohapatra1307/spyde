@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   ShieldCheck,
@@ -18,11 +18,17 @@ import {
   AlertTriangle,
   UserX,
 } from 'lucide-react';
-import { useCertificate, useFaceBlob } from '@/hooks/useCertificates';
+import { useCertificate } from '@/hooks/useCertificates';
+import { usePaymentStore } from '../stores/paymentStore'; // Path matches LivenessChallengePage
 
 export const CertificatePage: React.FC = () => {
   const { id = 'demo-cert' } = useParams<{ id: string }>();
   const navigate = useNavigate();
+
+  // Zustand Session ID to connect payment flows end-to-end
+  const challengeSessionId = usePaymentStore(
+    (s: { challengeSessionId?: string | null }) => s?.challengeSessionId
+  );
 
   const [copiedHash, setCopiedHash] = useState(false);
   const [copiedSig, setCopiedSig] = useState(false);
@@ -33,11 +39,15 @@ export const CertificatePage: React.FC = () => {
   const [countdown, setCountdown] = useState(10);
   const [faceDestroyed, setFaceDestroyed] = useState(false);
   const [faceLoading, setFaceLoading] = useState(false);
+  const [faceImageUrl, setFaceImageUrl] = useState<string | null>(null);
 
+  const countdownTimerRef = useRef<ReturnType<typeof setInterval>>();
+
+  // Load the core cryptographic certificate metadata
   const { data: cert, isLoading } = useCertificate(id);
-  const { data: faceBlobRes, refetch: fetchFaceBlob } = useFaceBlob(
-    cert?.faceBlobId || id
-  );
+
+  // Determine active session targeting
+ const targetSessionId = challengeSessionId || (cert as any)?.challengeSessionId || (cert as any)?.payload?.challengeSessionId || id;
 
   const handleCopy = (text: string, type: 'hash' | 'sig') => {
     void navigator.clipboard.writeText(text);
@@ -58,30 +68,55 @@ export const CertificatePage: React.FC = () => {
     }, 600);
   };
 
-  const handleRevealFace = async () => {
-    setFaceLoading(true);
-    try {
-      await fetchFaceBlob();
-      setShowFace(true);
-      setCountdown(10);
-    } finally {
-      setFaceLoading(false);
-    }
-  };
-
-  const handlePrint = () => window.print();
-
-  useEffect(() => {
-    if (showFace && countdown > 0) {
-      const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-    if (showFace && countdown === 0) {
-      setShowFace(false);
+  // Direct fetch approach for view-once face data to avoid React-Query caching issues
+const handleRevealFace = async () => {
+  setFaceLoading(true);
+  try {
+    const res = await fetch(`/api/certificates/face-blob/${targetSessionId}`);
+    if (res.ok) {
+      const json = await res.json();
+      // Extract from top-level or data envelope
+      const blob = json.faceBlob || json.data?.faceBlob || json.data?.imageData || json.data?.dataUrl;
+      if (blob) {
+        setFaceImageUrl(blob);
+        setShowFace(true);
+        setCountdown(10);
+      } else {
+        setFaceDestroyed(true);
+      }
+    } else {
       setFaceDestroyed(true);
     }
-    return undefined;
-  }, [showFace, countdown]);
+  } catch (e) {
+    console.error('[Certificate] Failed to retrieve biometric payload', e);
+    setFaceDestroyed(true);
+  } finally {
+    setFaceLoading(false);
+  }
+};
+const handlePrint = () => window.print();
+
+  // Handle countdown & manual/automatic self-destruction
+  useEffect(() => {
+    if (showFace && countdown > 0) {
+      countdownTimerRef.current = setTimeout(() => {
+        setCountdown((c) => c - 1);
+      }, 1000);
+    } else if (showFace && countdown === 0) {
+      setShowFace(false);
+      setFaceDestroyed(true);
+      setFaceImageUrl(null);
+      
+      // Notify server to instantly delete the face-blob from Upstash/Redis
+      fetch(`/api/certificates/face-blob/${targetSessionId}`, {
+        method: 'DELETE',
+      }).catch((err) => console.warn('[Biometrics] Destroy signal failed', err));
+    }
+
+    return () => {
+      if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current);
+    };
+  }, [showFace, countdown, targetSessionId]);
 
   if (isLoading || !cert) {
     return (
@@ -94,8 +129,9 @@ export const CertificatePage: React.FC = () => {
     );
   }
 
+  // ─── SAFE LOCALS AND DESTRUCTURING ───────────────────────────────────
   const payload = (cert as any).payload || {};
-  const certId = (cert as any).certificateId || cert.id;
+  const certId = (cert as any).certificateId || cert.id || id;
   const amountRupees =
     payload.amountRupees ??
     (payload.amountPaisa ? Number(payload.amountPaisa) / 100 : cert.amountRupees ?? 0);
@@ -127,15 +163,9 @@ export const CertificatePage: React.FC = () => {
   const payloadHash = cert.payloadHash ?? 'no-hash-available';
   const signature =
     cert.jwtSignature ?? (cert as any).signature ?? 'no-signature-available';
-  const hasFaceBlob = Boolean(cert.faceBlobId || (cert as any).hasViewOnceFace);
-
-  const rawFaceRes = faceBlobRes as any;
-  const faceImageUrl =
-    rawFaceRes?.imageData ||
-    rawFaceRes?.blob ||
-    rawFaceRes?.dataUrl ||
-    (cert as any)?.faceBlobUrl ||
-    'https://i.pravatar.cc/300?img=11';
+  
+  // Biometric flags
+  const hasFaceBlob = Boolean(cert.faceBlobId || (cert as any).hasViewOnceFace || challengeSessionId);
 
   const formattedAmount = new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -154,6 +184,7 @@ export const CertificatePage: React.FC = () => {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-canvas py-6 px-4 max-w-3xl mx-auto space-y-6 print:bg-white print:text-black print:p-0">
+      {/* Action Bar */}
       <div className="flex items-center justify-between print:hidden">
         <button
           onClick={() => navigate(-1)}
@@ -178,10 +209,12 @@ export const CertificatePage: React.FC = () => {
         </div>
       </div>
 
+      {/* Main Cryptographic Document Card */}
       <div className="bg-surface-card-dark border border-hairline-dark rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden print:border print:border-black print:shadow-none print:bg-white">
         <div className="pointer-events-none absolute -top-24 -right-24 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
         <div className="pointer-events-none absolute -bottom-24 -left-24 w-96 h-96 bg-trading-up/10 rounded-full blur-3xl" />
 
+        {/* Certificate Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-hairline-dark print:border-black/20">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-lg bg-surface-elevated-dark border border-hairline-dark flex items-center justify-center text-primary">
@@ -205,6 +238,7 @@ export const CertificatePage: React.FC = () => {
           </div>
         </div>
 
+        {/* Verdict Callout */}
         <div className="my-6 p-4 rounded-2xl bg-canvas border border-hairline-dark flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:bg-transparent print:border-black/20">
           <div className="flex items-center gap-3">
             <div className={`p-2 rounded-xl bg-white/5 ${verdictColor}`}>
@@ -240,6 +274,7 @@ export const CertificatePage: React.FC = () => {
           </button>
         </div>
 
+        {/* ─── VIEW-ONCE BIOMETRIC VISUALIZER ─── */}
         {hasFaceBlob && (
           <div className="my-6 p-5 rounded-2xl border border-primary/30 bg-primary/5 space-y-4 print:hidden">
             <div className="flex items-center justify-between">
@@ -270,7 +305,7 @@ export const CertificatePage: React.FC = () => {
               </div>
             )}
 
-            {showFace && (
+            {showFace && faceImageUrl && (
               <div className="flex flex-col items-center gap-3">
                 <div className="relative w-40 h-40 rounded-full overflow-hidden border-2 border-primary shadow-[0_0_30px_rgba(255,102,0,0.3)]">
                   <img
@@ -284,6 +319,13 @@ export const CertificatePage: React.FC = () => {
                 <p className="text-[10px] font-mono text-red-400/80 text-center max-w-xs">
                   DPDP: This image will be permanently purged in {countdown} seconds.
                 </p>
+                {/* Visual indicator of destruction speed */}
+                <div className="w-full max-w-[200px] h-1 bg-white/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-red-500 transition-all duration-1000"
+                    style={{ width: `${(countdown / 10) * 100}%` }}
+                  />
+                </div>
               </div>
             )}
 
@@ -312,6 +354,7 @@ export const CertificatePage: React.FC = () => {
           </div>
         )}
 
+        {/* Details Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4 text-xs font-mono">
           <div className="p-4 rounded-xl bg-surface-elevated-dark/40 border border-hairline-dark space-y-2.5">
             <div className="text-muted uppercase text-[10px] tracking-wider font-semibold flex items-center gap-1.5">
@@ -360,6 +403,7 @@ export const CertificatePage: React.FC = () => {
           </div>
         </div>
 
+        {/* Cryptographic Signature Block */}
         <div className="mt-4 p-5 rounded-2xl bg-canvas border border-hairline-dark space-y-3.5">
           <div className="flex items-center justify-between">
             <div className="text-xs font-mono uppercase text-on-dark font-bold tracking-wider flex items-center gap-2">
@@ -419,6 +463,7 @@ export const CertificatePage: React.FC = () => {
           </div>
         </div>
 
+        {/* Footer Audit Line */}
         <div className="mt-8 pt-6 border-t border-hairline-dark flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted">
           <div className="flex items-center gap-2">
             <Lock className="w-4 h-4 text-primary" />

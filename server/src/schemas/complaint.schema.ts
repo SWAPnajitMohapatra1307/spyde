@@ -6,6 +6,7 @@ const VALID_CATEGORIES = [
   'SPAM',
   'HARASSMENT',
   'QR_TAMPERING',
+  'NON_DELIVERY', // ✅ Added
   'OTHER',
 ] as const;
 
