@@ -1,3 +1,4 @@
+// client/src/App.tsx
 import React, { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
@@ -32,6 +33,7 @@ import { ProfilePage } from '@/pages/ProfilePage';
 import { PublicVerifyPage } from '@/pages/PublicVerifyPage';
 import { QrResultPage } from '@/pages/QrResultPage';
 import { QrScannerPage } from '@/pages/QrScannerPage';
+import { QrGeneratorTestPage } from '@/pages/qr/QrGeneratorTestPage'; // Added Secure QR Lab Test Bench
 import { SafeCirclePage } from '@/pages/SafeCirclePage';
 import { SplashPage } from '@/pages/SplashPage';
 import { TransactionDetailPage } from '@/pages/history/TransactionDetailPage';
@@ -179,9 +181,10 @@ export const App: React.FC<AppProps> = () => {
           {/* Safe Circle */}
           <Route path="/circle" element={<SafeCirclePage />} />
 
-          {/* QR */}
+          {/* QR Scan & Security Verification Block */}
           <Route path="/qr" element={<QrScannerPage />} />
           <Route path="/qr/result" element={<QrResultPage />} />
+          <Route path="/qr/generate-test" element={<QrGeneratorTestPage />} />
 
           {/* Liveness Pending */}
           <Route path="/liveness/pending" element={<LivenessPendingPage />} />

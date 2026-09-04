@@ -16,17 +16,20 @@ import {
   ComplaintRecord,
 } from "@/hooks/useComplaints";
 
-type StatusFilterType = "ALL" | ComplaintStatus;
+type StatusFilterType = "ALL" | "PENDING" | "INVESTIGATING" | "RESOLVED" | "DISMISSED";
 
-const getStatusBadge = (status: ComplaintStatus): string => {
+const getStatusBadge = (status: string): string => {
   switch (status) {
     case "PENDING":
       return "bg-accent-yellow/15 text-accent-yellow border-accent-yellow/30";
     case "INVESTIGATING":
       return "bg-accent-orange/15 text-accent-orange border-accent-orange/30";
     case "RESOLVED":
+    case "VERIFIED":
       return "bg-accent-green/15 text-accent-green border-accent-green/30";
     case "DISMISSED":
+    case "REJECTED":
+    default:
       return "bg-white/10 text-bone-muted border-white/10";
   }
 };
@@ -46,11 +49,23 @@ export const MyComplaintsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>("ALL");
 
-  const complaints: ComplaintRecord[] = data?.complaints ?? [];
+  const rawComplaints =
+    (data as any)?.complaints ||
+    (data as any)?.data?.complaints ||
+    (data as any)?.data ||
+    (Array.isArray(data) ? data : []);
+
+  const complaints: ComplaintRecord[] = Array.isArray(rawComplaints) ? rawComplaints : [];
 
   const filteredComplaints = useMemo<ComplaintRecord[]>(() => {
     return complaints.filter((c: ComplaintRecord) => {
-      const matchesStatus = statusFilter === "ALL" || c.status === statusFilter;
+      // Map Prisma statuses (VERIFIED -> RESOLVED, REJECTED -> DISMISSED)
+      let matchesStatus = statusFilter === "ALL";
+      if (statusFilter === "PENDING") matchesStatus = c.status === "PENDING";
+      if (statusFilter === "INVESTIGATING") matchesStatus = c.status === "INVESTIGATING";
+      if (statusFilter === "RESOLVED") matchesStatus = c.status === "RESOLVED" || c.status === ("VERIFIED" as any);
+      if (statusFilter === "DISMISSED") matchesStatus = c.status === "DISMISSED" || c.status === ("REJECTED" as any);
+
       const q = searchTerm.toLowerCase().trim();
       const matchesSearch =
         !q ||

@@ -15,6 +15,7 @@ import complaintRoutes from './routes/complaint.routes';
 import livenessRoutes from './routes/liveness.routes';
 import qrRoutes from './routes/qr.routes';
 import notificationRoutes from './routes/notification.routes'; // ✅ G2, G3 Import
+import { cvRouter } from './routes/cv.routes'; // ✅ Added CV Router
 import { startEscrowCleanerJob } from './jobs/escrowCleaner';
 
 const app = express();
@@ -85,6 +86,7 @@ app.use('/api/certificates', certificateRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/notifications', notificationRoutes); // ✅ G2, G3 Mount
 app.use('/api/admin', adminRoutes);
+app.use('/api/cv', cvRouter); // ✅ Added CV Router Mount
 
 // Error Handling Middleware
 app.use(
